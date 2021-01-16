@@ -1,5 +1,5 @@
 def main():
-    print("hello world!")
+    print("hello world!", "\n")
     from ChessGame import ChessGame;
     game = ChessGame()
 
