@@ -14,30 +14,36 @@ class Pieces:
     BQ = -5
     BK = -6
 
-    piece_to_descriptor = {'WP': (True, 'pawn'),
-                           'WR': (True, 'rook'),
-                           'WN': (True, 'knight'),
-                           'WB': (True, 'bishop'),
-                           'WQ': (True, 'queen'),
-                           'WK': (True, 'king'),
-                           'BP': (False, 'pawn'),
-                           'BR': (False, 'rook'),
-                           'BN': (False, 'knight'),
-                           'BB': (False, 'bishop'),
-                           'BQ': (False, 'queen'),
-                           'BK': (False, 'king')
-                           }
+piece_to_descriptor = {'WP': (True, 'pawn'),
+                       'WR': (True, 'rook'),
+                       'WN': (True, 'knight'),
+                       'WB': (True, 'bishop'),
+                       'WQ': (True, 'queen'),
+                       'WK': (True, 'king'),
+                       'BP': (False, 'pawn'),
+                       'BR': (False, 'rook'),
+                       'BN': (False, 'knight'),
+                       'BB': (False, 'bishop'),
+                       'BQ': (False, 'queen'),
+                       'BK': (False, 'king')
+                       }
 
-    value_to_piece = {0: '0 ',
-                   1: 'WP',
-                   2: 'WR',
-                   3: 'WN',
-                   4: 'WB',
-                   5: 'WQ',
-                   6: 'WK',
-                   -1: 'BP',
-                   -2: 'BR',
-                   -3: 'BN',
-                   -4: 'BB',
-                   -5: 'BQ',
-                   -6: 'BK'}
+value_to_piece = {0: '0 ',
+               1: 'WP',
+               2: 'WR',
+               3: 'WN',
+               4: 'WB',
+               5: 'WQ',
+               6: 'WK',
+               -1: 'BP',
+               -2: 'BR',
+               -3: 'BN',
+               -4: 'BB',
+               -5: 'BQ',
+               -6: 'BK'}
+
+black_walkable_squares = set([1, 2, 3, 4, 5, 6, 0])
+black_enemy_pieces = set([1, 2, 3, 4, 5, 6])
+white_walkable_squares = set([-1, -2, -3, -4, -5, -6, 0])
+white_enemy_pieces = set([-1, -2, -3, -4, -5, -6])
+
