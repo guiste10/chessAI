@@ -1,5 +1,5 @@
 from Pieces import Pieces
-
+from move.MoveUtils import col_to_uci_dict, row_to_uci_dict
 
 class Move:
     def __init__(self, row_1, col_1, row_2, col_2):
@@ -9,8 +9,8 @@ class Move:
         self.col_2 = col_2
 
     def __str__(self):
-        return self.col_to_uci_dict[self.col_1] + self.row_to_uci_dict[self.row_1] \
-             + self.col_to_uci_dict[self.col_2] + self.row_to_uci_dict[self.row_2]
+        return col_to_uci_dict[self.col_1] + row_to_uci_dict[self.row_1] \
+             + col_to_uci_dict[self.col_2] + row_to_uci_dict[self.row_2]
 
 
 class EnPassant(Move):
