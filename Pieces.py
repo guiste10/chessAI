@@ -42,6 +42,25 @@ value_to_piece = {0: '0 ',
                -5: 'BQ',
                -6: 'BK'}
 
+promotion_to_piece = {('q',True): 5, ('r',True): 2, ('b',True): 4, ('n',True): 3, ('p',True): 1,
+                      ('q',False): -5, ('r',False): -2, ('b',False): -4, ('n',False): -3, ('p',False): -1}
+
+piece_to_promotion = {1: 'p',
+               2: 'r',
+               3: 'n',
+               4: 'b',
+               5: 'q',
+               6: 'k',
+               -1: 'p',
+               -2: 'r',
+               -3: 'n',
+               -4: 'b',
+               -5: 'q',
+               -6: 'k'}
+
+
+
+
 black_walkable_squares = set([1, 2, 3, 4, 5, 6, 0])
 black_enemy_pieces = set([1, 2, 3, 4, 5, 6])
 white_walkable_squares = set([-1, -2, -3, -4, -5, -6, 0])

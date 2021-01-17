@@ -1,7 +1,6 @@
 from unittest import TestCase
 from Board import Board
 from BoardPositions import BoardPositions
-from Move import  print_moves
 
 
 class TestBoard(TestCase):
