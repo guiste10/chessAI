@@ -16,6 +16,4 @@ class ChessGame:
             print(move, end=" ")
         print('\n')
         print('Num moves: ' + str(len(moves)))
-        a=1
-
-
+        a = 1
