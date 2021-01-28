@@ -12,8 +12,4 @@ class ChessGame:
         self.white_pieces, self.black_pieces = self.board.init_pieces()
 
         moves, self.white_pieces = self.board.get_color_moves(self.white_pieces, True, 'e4e6')
-        for move in moves:
-            print(move, end=" ")
-        print('\n')
-        print('Num moves: ' + str(len(moves)))
-        a = 1
+        print(moves[0].__class__.__name__)

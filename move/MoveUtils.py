@@ -1,4 +1,4 @@
-from Pieces import Pieces
+from Pieces import Pieces, value_to_piece_short, promotion_color_to_value
 
 col_to_uci_dict = {2: 'a', 3: 'b', 4: 'c', 5: 'd', 6: 'e', 7: 'f', 8: 'g', 9: 'h', }
 uci_to_col_dict = {'a': 2, 'b': 3, 'c': 4, 'd': 5, 'e': 6, 'f': 7, 'g': 8, 'h': 9}
@@ -26,7 +26,6 @@ def uci_move_to_move(uci_move):
 
 
 def do_uci_move(uci_move, board, is_white):
-    from Pieces import promotion_color_to_value, value_to_piece_short
     (col_1, row_1, col_2, row_2)  = uci_move_to_move(uci_move)
     if len(uci_move) > 4:  # promotion
         board[row_1][col_1] = Pieces.OO
@@ -46,11 +45,9 @@ def do_uci_move(uci_move, board, is_white):
 def move_to_uci_move(move):
     (row_1, col_1, row_2, col_2) = (move.row_1, move.col_1, move.row_2, move.col_2)
     uci_move = row_to_uci_dict[row_1] + col_to_uci_dict[col_1] + row_to_uci_dict[row_2] + col_to_uci_dict[col_2]
-    from move.Move import Promotion
-    if type(move) is not Promotion:
+    if move.__class__.__name__ != 'Promotion':
         return uci_move
     else:
-        from Pieces import value_to_piece_short
         return uci_move + value_to_piece_short[move.promotion]
 
 
