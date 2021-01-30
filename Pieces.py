@@ -16,6 +16,9 @@ class Pieces:
 
 
 king_start_pos = {False: (2, 6), True: (9, 6)}
+king_castled_kingside_pos = {False: (2, 8), True: (9, 8)}
+king_castled_queenside_pos = {False: (2, 4), True: (9, 4)}
+rook_start_pos = {False: ((2, 2), (2, 9)), True: ((9, 2), (9, 9))}
 
 piece_to_descriptor = {'WP': (True, 'pawn'), 'WR': (True, 'rook'), 'WN': (True, 'knight'), 'WB': (True, 'bishop'),
                        'WQ': (True, 'queen'), 'WK': (True, 'king'), 'BP': (False, 'pawn'), 'BR': (False, 'rook'),
@@ -37,7 +40,7 @@ black_piece_values = {-1, -2, -3, -4, -5, -6}
 
 rook_directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
 bishop_directions = [(1, 1), (1, -1), (-1, -1), (-1, 1)]
-
+queen_directions = [(0, 1), (1, 0), (0, -1), (-1, 0),(1, 1), (1, -1), (-1, -1), (-1, 1)]
 
 def get_knight_squares(row, col):
     return [(row - 1, col + 2), (row + 1, col + 2), (row + 2, col + 1), (row + 2, col - 1), (row + 1, col - 2),
