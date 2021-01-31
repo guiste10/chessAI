@@ -106,7 +106,7 @@ class Castle:
         else:
             castle_queenside(board.board, row, col)
             board.state.king_pos[self.is_white] = (row, col - 2)
-        board.state.castled[self.is_white] = True
+        board.state.cannot_castle[self.is_white] = True
 
     def undo_move(self, board):
         (row, col) = king_start_pos[self.is_white]
@@ -121,4 +121,4 @@ class Castle:
             board.board[row][col - 4] = board.board[row][col - 1]
             board.board[row][col - 1] = Pieces.OO
         board.state.king_pos[self.is_white] = king_start_pos[self.is_white]
-        board.state.castled[self.is_white] = False
+        board.state.cannot_castle[self.is_white] = False

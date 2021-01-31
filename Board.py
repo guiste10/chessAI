@@ -36,13 +36,14 @@ class Board:
     def get_color_moves(self, pieces, is_white, enemy_uci_move):  # enemy_uci_move done before calling this method
         is_friendly = is_enemy[not is_white]
         alive_pieces, pseudo_moves = [], []
-        for piece in pieces:
+        for piece in pieces[is_white]:
             if is_friendly(self.board[piece[0]][piece[1]]):  # check if was not killed during previous round
                 alive_pieces.append(piece)
                 self.add_piece_moves(piece, pseudo_moves)
+        pieces[is_white] = alive_pieces  # update list of pieces that are still alive todo check if ok with minimax
         self.add_en_passant(enemy_uci_move, pseudo_moves)
         valid_moves = self.filter_invalid_moves(is_white, pseudo_moves)
-        return valid_moves, alive_pieces
+        return valid_moves
 
     def filter_invalid_moves(self, is_white, pseudo_moves):
         valid_moves = []
@@ -122,7 +123,7 @@ class Board:
 
     def add_directed_rook_moves(self, rook, directions, is_white, moves):
         row, col = rook[0], rook[1]
-        if self.state.castled[is_white] or (row, col) not in rook_start_pos[is_white]:
+        if self.state.cannot_castle[is_white] or (row, col) not in rook_start_pos[is_white]:
             self.add_directed_moves(rook, rook_directions, is_white, moves)  # castling rights unaffected
         else:
             new_game_state = copy.deepcopy(self.state)
@@ -162,13 +163,13 @@ class Board:
     def add_king_moves(self, king, is_white, moves):
         row, col = king[0], king[1]
         self.add_king_square_moves(row, col, get_king_squares(row, col), is_white, moves)
-        if not self.state.castled[is_white] and not self.is_king_attacked(is_white):
+        if not self.state.cannot_castle[is_white] and not self.is_king_attacked(is_white):
             self.add_castling_moves(col, is_white, moves, row)
 
     def add_king_square_moves(self, row, col, to_squares, is_white, moves):
         for to_square in to_squares:
             new_game_state = copy.deepcopy(self.state)
-            new_game_state.castled[is_white] = True
+            new_game_state.cannot_castle[is_white] = True
             new_game_state.king_pos[is_white] = (to_square[0], to_square[1])
             to_square_val = self.board[to_square[0]][to_square[1]]
             if to_square_val == Pieces.OO:
