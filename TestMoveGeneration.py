@@ -24,8 +24,8 @@ class TestMoveGeneration(TestCase):
 
     def test_get_color_moves_3(self):
         board = Board(BoardPositions.attack_board)
-        board.game_state.castled[True] = True  # white castled
-        board.game_state.king_pos[True] = (9, 8)
+        board.state.castled[True] = True  # white castled
+        board.state.king_pos[True] = (9, 8)
         white_pieces, black_pieces = board.init_pieces()
         white_moves, white_pieces = board.get_color_moves(white_pieces, True, 'a1a1')
         black_moves, black_pieces = board.get_color_moves(black_pieces, False, 'a1a1')
@@ -34,14 +34,14 @@ class TestMoveGeneration(TestCase):
 
     def test_get_color_moves_4(self):
         board = Board(BoardPositions.en_passant_board_white)
-        board.game_state.castled[True] = True  # white's king castled or moved
-        board.game_state.castled[False] = True  # black's king castled or moved
+        board.state.castled[True] = True  # white's king castled or moved
+        board.state.castled[False] = True  # black's king castled or moved
         white_pieces, black_pieces = board.init_pieces()
         white_moves, white_pieces = board.get_color_moves(white_pieces, True, 'b7b5')
         self.assertEqual(5, len(white_moves))
         board = Board(BoardPositions.en_passant_board_black)
-        board.game_state.castled[True] = True  # white's king castled or moved
-        board.game_state.castled[False] = True  # black's king castled or moved
+        board.state.castled[True] = True  # white's king castled or moved
+        board.state.castled[False] = True  # black's king castled or moved
         white_pieces, black_pieces = board.init_pieces()
         black_moves, black_pieces = board.get_color_moves(black_pieces, False, 'a2a4')
         self.assertEqual(5, len(black_moves))

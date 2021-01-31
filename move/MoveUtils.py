@@ -1,4 +1,4 @@
-from Pieces import Pieces, value_to_piece_short, promotion_color_to_value
+from Pieces import Pieces, value_to_piece_short, promotion_color_to_value, king_start_pos, king_castled_queenside_pos, king_castled_kingside_pos
 
 col_to_uci_dict = {2: 'a', 3: 'b', 4: 'c', 5: 'd', 6: 'e', 7: 'f', 8: 'g', 9: 'h', }
 uci_to_col_dict = {'a': 2, 'b': 3, 'c': 4, 'd': 5, 'e': 6, 'f': 7, 'g': 8, 'h': 9}
@@ -25,7 +25,7 @@ def uci_move_to_move(uci_move):
             uci_to_row_dict[uci_move[3]])
 
 
-def do_uci_move(uci_move, board, is_white):
+def do_uci_move(uci_move, board, is_white): # todo kingpos + castled + rook moved
     (col_1, row_1, col_2, row_2) = uci_move_to_move(uci_move)
     if len(uci_move) > 4:  # promotion
         board[row_1][col_1] = Pieces.OO
@@ -43,7 +43,11 @@ def do_uci_move(uci_move, board, is_white):
 
 
 def move_to_uci_move(move):
-    (row_1, col_1, row_2, col_2) = (move.row_1, move.col_1, move.row_2, move.col_2)
+    if move.__class__.__name__ == 'Castle':
+        row_1, col_1 = king_start_pos[move.is_white]
+        row_2, col_2 = king_castled_kingside_pos[move.is_white] if move.kingside else king_castled_queenside_pos[move.is_white]
+    else:
+        (row_1, col_1, row_2, col_2) = (move.row_1, move.col_1, move.row_2, move.col_2)
     uci_move = row_to_uci_dict[row_1] + col_to_uci_dict[col_1] + row_to_uci_dict[row_2] + col_to_uci_dict[col_2]
     if move.__class__.__name__ != 'Promotion':
         return uci_move

@@ -38,6 +38,9 @@ white_piece_values = {1, 2, 3, 4, 5, 6}
 white_walkable_squares = {-1, -2, -3, -4, -5, -6, 0}
 black_piece_values = {-1, -2, -3, -4, -5, -6}
 
+is_enemy = {True: lambda piece_int: piece_int in black_piece_values,
+            False: lambda piece_int: piece_int in white_piece_values}
+
 rook_directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
 bishop_directions = [(1, 1), (1, -1), (-1, -1), (-1, 1)]
 queen_directions = [(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (1, -1), (-1, -1), (-1, 1)]

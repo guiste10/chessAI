@@ -71,11 +71,11 @@ class StateChangeMove(Move):
 
     def do_move(self, board):
         super().do_move(board)
-        board.game_state = self.game_state_new
+        board.state = self.game_state_new
 
     def undo_move(self, board):
         super().undo_move(board)
-        board.game_state = self.game_state_old
+        board.state = self.game_state_old
 
 
 class StateChangeCapture(Capture):
@@ -86,11 +86,11 @@ class StateChangeCapture(Capture):
 
     def do_move(self, board):
         super().do_move(board)
-        board.game_state = self.game_state_new
+        board.state = self.game_state_new
 
     def undo_move(self, board):
         super().undo_move(board)
-        board.game_state = self.game_state_old
+        board.state = self.game_state_old
 
 
 class Castle:
@@ -102,11 +102,11 @@ class Castle:
         (row, col) = king_start_pos[self.is_white]
         if self.kingside:
             castle_kingside(board.board, row, col)
-            board.game_state.king_pos[self.is_white] = (row, col + 2)
+            board.state.king_pos[self.is_white] = (row, col + 2)
         else:
             castle_queenside(board.board, row, col)
-            board.game_state.king_pos[self.is_white] = (row, col - 2)
-        board.game_state.castled[self.is_white] = True
+            board.state.king_pos[self.is_white] = (row, col - 2)
+        board.state.castled[self.is_white] = True
 
     def undo_move(self, board):
         (row, col) = king_start_pos[self.is_white]
@@ -120,5 +120,5 @@ class Castle:
             board.board[row][col - 2] = Pieces.OO
             board.board[row][col - 4] = board.board[row][col - 1]
             board.board[row][col - 1] = Pieces.OO
-        board.game_state.king_pos[self.is_white] = king_start_pos[self.is_white]
-        board.game_state.castled[self.is_white] = False
+        board.state.king_pos[self.is_white] = king_start_pos[self.is_white]
+        board.state.castled[self.is_white] = False
