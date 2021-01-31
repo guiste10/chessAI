@@ -101,10 +101,10 @@ class Castle:
     def do_move(self, board):
         (row, col) = king_start_pos[self.is_white]
         if self.kingside:
-            castle_kingside(board, row, col)
+            castle_kingside(board.board, row, col)
             board.game_state.king_pos[self.is_white] = (row, col + 2)
         else:
-            castle_queenside(board, row, col)
+            castle_queenside(board.board, row, col)
             board.game_state.king_pos[self.is_white] = (row, col - 2)
         board.game_state.castled[self.is_white] = True
 

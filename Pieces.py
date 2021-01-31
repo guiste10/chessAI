@@ -40,7 +40,8 @@ black_piece_values = {-1, -2, -3, -4, -5, -6}
 
 rook_directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
 bishop_directions = [(1, 1), (1, -1), (-1, -1), (-1, 1)]
-queen_directions = [(0, 1), (1, 0), (0, -1), (-1, 0),(1, 1), (1, -1), (-1, -1), (-1, 1)]
+queen_directions = [(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (1, -1), (-1, -1), (-1, 1)]
+
 
 def get_knight_squares(row, col):
     return [(row - 1, col + 2), (row + 1, col + 2), (row + 2, col + 1), (row + 2, col - 1), (row + 1, col - 2),

@@ -26,7 +26,7 @@ def uci_move_to_move(uci_move):
 
 
 def do_uci_move(uci_move, board, is_white):
-    (col_1, row_1, col_2, row_2)  = uci_move_to_move(uci_move)
+    (col_1, row_1, col_2, row_2) = uci_move_to_move(uci_move)
     if len(uci_move) > 4:  # promotion
         board[row_1][col_1] = Pieces.OO
         board[row_2][col_2] = promotion_color_to_value[(uci_move[4], is_white)]

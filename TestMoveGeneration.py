@@ -1,7 +1,6 @@
 from unittest import TestCase
 from Board import Board
 from BoardPositions import BoardPositions
-from move.MoveUtils import print_moves
 
 
 # print_moves(black_moves)
@@ -25,10 +24,8 @@ class TestMoveGeneration(TestCase):
 
     def test_get_color_moves_3(self):
         board = Board(BoardPositions.attack_board)
-        board.castled = {True: True, False: False}  # white castled
-        board.king_rook_moved = {True: True, False: False}
-        board.queen_rook_moved = {True: True, False: False}
-        board.king_position = {True: (9, 8), False: (2, 6)}
+        board.game_state.castled[True] = True  # white castled
+        board.game_state.king_pos[True] = (9, 8)
         white_pieces, black_pieces = board.init_pieces()
         white_moves, white_pieces = board.get_color_moves(white_pieces, True, 'a1a1')
         black_moves, black_pieces = board.get_color_moves(black_pieces, False, 'a1a1')
@@ -37,10 +34,14 @@ class TestMoveGeneration(TestCase):
 
     def test_get_color_moves_4(self):
         board = Board(BoardPositions.en_passant_board_white)
+        board.game_state.castled[True] = True  # white's king castled or moved
+        board.game_state.castled[False] = True  # black's king castled or moved
         white_pieces, black_pieces = board.init_pieces()
         white_moves, white_pieces = board.get_color_moves(white_pieces, True, 'b7b5')
         self.assertEqual(5, len(white_moves))
         board = Board(BoardPositions.en_passant_board_black)
+        board.game_state.castled[True] = True  # white's king castled or moved
+        board.game_state.castled[False] = True  # black's king castled or moved
         white_pieces, black_pieces = board.init_pieces()
         black_moves, black_pieces = board.get_color_moves(black_pieces, False, 'a2a4')
         self.assertEqual(5, len(black_moves))
@@ -122,4 +123,3 @@ class TestMoveGeneration(TestCase):
         self.assertEqual(board.is_square_attacked(9, 5, is_white), True)
         self.assertEqual(board.is_square_attacked(9, 6, is_white), True)
         self.assertEqual(board.is_square_attacked(9, 9, is_white), True)
-
