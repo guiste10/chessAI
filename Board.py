@@ -33,17 +33,14 @@ class Board:
                         black_pieces.append(piece_alive)
         return white_pieces, black_pieces
 
-    def get_color_moves(self, pieces, is_white, enemy_uci_move):  # enemy_uci_move done before calling this method
-        is_friendly = is_enemy[not is_white]
-        alive_pieces, pseudo_moves = [], []
-        for piece in pieces[is_white]:
-            if is_friendly(self.board[piece[0]][piece[1]]):  # check if was not killed during previous round
-                alive_pieces.append(piece)
-                self.add_piece_moves(piece, pseudo_moves)
-        pieces[is_white] = alive_pieces  # update list of pieces that are still alive todo check if ok with minimax
+    def get_color_moves(self, is_white, enemy_uci_move):  # enemy_uci_move done before calling this method
+        pseudo_moves = []
+        for row in range(2, 10):
+            for col in range(2, 10):
+                if is_enemy[not is_white](self.board[row][col]):
+                    self.add_piece_moves((row, col), pseudo_moves)
         self.add_en_passant(enemy_uci_move, pseudo_moves)
-        valid_moves = self.filter_invalid_moves(is_white, pseudo_moves)
-        return valid_moves
+        return self.filter_invalid_moves(is_white, pseudo_moves)
 
     def filter_invalid_moves(self, is_white, pseudo_moves):
         valid_moves = []
@@ -54,12 +51,12 @@ class Board:
             move.undo_move(self)
         return valid_moves
 
-    def add_piece_moves(self, alive_piece, moves):
-        piece_int = self.board[alive_piece[0]][alive_piece[1]]
+    def add_piece_moves(self, piece_val, moves):
+        piece_int = self.board[piece_val[0]][piece_val[1]]
         piece = value_to_piece[piece_int]
         (is_white, piece_description) = piece_to_descriptor[piece]
         method_name = 'add_' + piece_description + '_moves'
-        return getattr(self, method_name)(alive_piece, is_white, moves)
+        return getattr(self, method_name)(piece_val, is_white, moves)
 
     def add_pawn_moves(self, pawn, is_white, moves):
         (row, col) = (pawn[0], pawn[1])

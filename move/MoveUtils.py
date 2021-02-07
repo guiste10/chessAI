@@ -39,8 +39,8 @@ def do_uci_move(uci_move, board, is_white):
             else:
                 castle_queenside(board.board, row_1, col_1)
         else:
-            board.board[row_1][col_1] = Pieces.OO
             board.board[row_2][col_2] = board.board[row_1][col_1]
+            board.board[row_1][col_1] = Pieces.OO
     else:  # en passant/move/capture
         if value_to_piece_short[board.board[row_1][col_1]] == 'p' and col_1 != col_2 and board.board[row_2][col_2] == Pieces.OO:
             board.board[row_2][col_1] = Pieces.OO  # en passant kill
@@ -48,7 +48,6 @@ def do_uci_move(uci_move, board, is_white):
         board.board[row_1][col_1] = Pieces.OO
         if (row_1, col_1) in rook_start_pos[is_white]:
             board.state.rook_moved[(row_1, col_1)] = True
-
 
 
 def move_to_uci_move(move):
@@ -61,7 +60,7 @@ def move_to_uci_move(move):
     if move.__class__.__name__ != 'Promotion':
         return uci_move
     else:
-        return uci_move + value_to_piece_short[move.promotion]
+        return uci_move + value_to_piece_short[move.promotion_piece]
 
 
 def print_moves(moves):

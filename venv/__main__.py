@@ -6,8 +6,7 @@ from Ai import get_best_move
 def main():
     print("Engine started", "\n")
     board = Board(BoardPositions.normal_board)
-    white_pieces, black_pieces = board.init_pieces()
-    pieces = {True: white_pieces, False: black_pieces}
+    board.init_pieces()
     print(board)
     is_engine_white = False
     opponents_uci_move = 'a1a1' #  used for en passant purposes
@@ -18,17 +17,28 @@ def main():
         is_engine_white = False
         n = 0
     print('')
-    while True:
+    play_game(board, is_engine_white, n, opponents_uci_move)
+
+
+def play_game(board, is_engine_white, n, opponents_uci_move):
+    game_over = False
+    while not game_over:
         if n % 2 == 0:
             opponents_uci_move = input("Enter move: ").replace(" ", "")
             print('')
             do_uci_move(opponents_uci_move, board, not is_engine_white)
         else:
             print("Engine's Turn:", end=' ')
-            move = get_best_move(board, pieces, is_engine_white, opponents_uci_move, 1)
-            move.do_move(board)
-            move_uci = move_to_uci_move(move)
-            print(move_uci + '\n')
+            best_move_uci, best_move_val = get_best_move(board, opponents_uci_move, is_engine_white)
+            if best_move_uci == 'no move':
+                game_over = True
+                if board.is_king_attacked(is_engine_white):
+                    print("Engine checkmated !")
+                else:
+                    print("Stalemate !")
+            else:
+                do_uci_move(best_move_uci, board, is_engine_white)
+                print(best_move_uci + '\n')
         print(board)
         n += 1
 
