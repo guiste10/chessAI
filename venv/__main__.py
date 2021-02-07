@@ -1,12 +1,12 @@
 from Board import Board
-from BoardPositions import BoardPositions
+from BoardPositions import init_normal_board, init_attack_board
 from move.MoveUtils import do_uci_move, move_to_uci_move
-from Ai import get_best_move
+from Ai import get_best_move, visit_node
 
 def main():
     print("Engine started", "\n")
-    board = Board(BoardPositions.normal_board)
-    board.init_pieces()
+    #board = init_normal_board()
+    board = init_attack_board()
     print(board)
     is_engine_white = False
     opponents_uci_move = 'a1a1' #  used for en passant purposes
@@ -28,8 +28,8 @@ def play_game(board, is_engine_white, n, opponents_uci_move):
             print('')
             do_uci_move(opponents_uci_move, board, not is_engine_white)
         else:
-            print("Engine's Turn:", end=' ')
-            best_move_uci, best_move_val = get_best_move(board, opponents_uci_move, is_engine_white)
+            print("Engine's Turn:")
+            best_move_uci = get_best_move(board, opponents_uci_move, is_engine_white)
             if best_move_uci == 'no move':
                 game_over = True
                 if board.is_king_attacked(is_engine_white):
@@ -38,7 +38,7 @@ def play_game(board, is_engine_white, n, opponents_uci_move):
                     print("Stalemate !")
             else:
                 do_uci_move(best_move_uci, board, is_engine_white)
-                print(best_move_uci + '\n')
+                print(best_move_uci)
         print(board)
         n += 1
 

@@ -21,18 +21,6 @@ class Board:
             board_str += "\n"
         return board_str
 
-    def init_pieces(self):
-        white_pieces, black_pieces = [], []
-        for row in range(2, 10):
-            for col in range(2, 10):
-                if self.board[row][col] != Pieces.OO:
-                    piece_alive = (row, col)
-                    if self.board[row][col] > Pieces.OO:
-                        white_pieces.append(piece_alive)
-                    else:
-                        black_pieces.append(piece_alive)
-        return white_pieces, black_pieces
-
     def get_color_moves(self, is_white, enemy_uci_move):  # enemy_uci_move done before calling this method
         pseudo_moves = []
         for row in range(2, 10):
