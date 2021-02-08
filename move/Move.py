@@ -63,7 +63,7 @@ class Promotion(Move):
         board.board[self.row_2][self.col_2] = self.to_piece
 
 
-class StateChangeMove(Move):
+class MoveStateChange(Move):
     def __init__(self, row_1, col_1, row_2, col_2, game_state_old, game_state_new):
         super().__init__(row_1, col_1, row_2, col_2)
         self.game_state_old = game_state_old
@@ -78,7 +78,7 @@ class StateChangeMove(Move):
         board.state = self.game_state_old
 
 
-class StateChangeCapture(Capture):
+class CaptureStateChange(Capture):
     def __init__(self, row_1, col_1, row_2, col_2, to_piece, game_state_old, game_state_new):
         super().__init__(row_1, col_1, row_2, col_2, to_piece)
         self.game_state_old = game_state_old

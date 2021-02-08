@@ -1,8 +1,9 @@
 from move.MoveUtils import move_to_uci_move
+import Evaluation
 import time
 
 max_utility = 999999
-max_depth = 2
+max_depth = 4
 count = 0
 
 
@@ -15,6 +16,8 @@ def get_best_move(board, opponents_uci_move, is_engine_white):
     print('Time: ' + str(time_dif))
     print('#nodes: ' + str(visit_node()))
     print('#nodes/sec: ' + str(visit_node()//time_dif) + '\n')
+    eval = Evaluation.evaluate(board.board)
+    print('eval now: ' + str(eval))
     return best_move
 
 
@@ -48,9 +51,19 @@ def alpha_beta_at_root(board, opponents_uci_move, is_engine_white):
 def alpha_beta(board, opponents_uci_move, is_engine_white, alpha, beta, depth):
     visit_node()
     if depth == max_depth:
-        return evaluate(board)
+        return Evaluation.evaluate(board.board)
     if is_engine_white:
-        return evaluate_node(alpha, beta, board, depth, is_engine_white, opponents_uci_move)
+        best_val = -max_utility
+        moves = board.get_color_moves(is_engine_white, opponents_uci_move)
+        for move in moves:
+            uci_move = move_to_uci_move(move)
+            move.do_move(board)
+            best_val = max(best_val, alpha_beta(board, uci_move, not is_engine_white, alpha, beta, depth + 1))
+            move.undo_move(board)
+            alpha = max(alpha, best_val)
+            if alpha >= beta:
+                break
+        return best_val
     else:
         best_val = +max_utility
         moves = board.get_color_moves(is_engine_white, opponents_uci_move)
@@ -63,21 +76,3 @@ def alpha_beta(board, opponents_uci_move, is_engine_white, alpha, beta, depth):
             if beta <= alpha:
                 break
         return best_val
-
-
-def evaluate_node(alpha, beta, board, depth, is_engine_white, opponents_uci_move):
-    best_val = -max_utility
-    moves = board.get_color_moves(is_engine_white, opponents_uci_move)
-    for move in moves:
-        uci_move = move_to_uci_move(move)
-        move.do_move(board)
-        best_val = max(best_val, alpha_beta(board, uci_move, not is_engine_white, alpha, beta, depth + 1))
-        move.undo_move(board)
-        alpha = max(alpha, best_val)
-        if alpha >= beta:
-            break
-    return best_val
-
-
-def evaluate(_board):
-    return 0
