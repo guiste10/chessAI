@@ -31,7 +31,7 @@ def do_uci_move(uci_move, board, is_white):
         board.board[row_1][col_1] = Pieces.OO
         board.board[row_2][col_2] = promotion_color_to_value[(uci_move[4], is_white)]
     elif value_to_piece_short[board.board[row_1][col_1]] == 'k':
-        board.state.king_pos[is_white] = (row_2, col_2)  # update king pos
+        board.king_pos[is_white] = (row_2, col_2)  # update king pos
         board.state.cannot_castle[is_white] = True
         if abs(col_2 - col_1) == 2:  # castle
             if col_2 - col_1 == 2:

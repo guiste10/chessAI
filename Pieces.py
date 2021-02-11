@@ -41,16 +41,16 @@ black_piece_values = {-1, -2, -3, -4, -5, -6}
 is_enemy = {True: lambda piece_int: piece_int in black_piece_values,
             False: lambda piece_int: piece_int in white_piece_values}
 
-rook_directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
-bishop_directions = [(1, 1), (1, -1), (-1, -1), (-1, 1)]
-queen_directions = [(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (1, -1), (-1, -1), (-1, 1)]
+rook_directions = ((0, 1), (1, 0), (0, -1), (-1, 0))
+bishop_directions = ((1, 1), (1, -1), (-1, -1), (-1, 1))
+queen_directions = ((0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (1, -1), (-1, -1), (-1, 1))
 
 
 def get_knight_squares(row, col):
-    return [(row - 1, col + 2), (row + 1, col + 2), (row + 2, col + 1), (row + 2, col - 1), (row + 1, col - 2),
-            (row - 1, col - 2), (row - 2, col - 1), (row - 2, col + 1)]
+    return ((row - 1, col + 2), (row + 1, col + 2), (row + 2, col + 1), (row + 2, col - 1), (row + 1, col - 2),
+            (row - 1, col - 2), (row - 2, col - 1), (row - 2, col + 1))
 
 
 def get_king_squares(row, col):
-    return [(row + 1, col - 1), (row + 1, col), (row + 1, col + 1), (row, col - 1), (row, col + 1), (row - 1, col - 1),
-            (row - 1, col), (row - 1, col + 1)]
+    return ((row + 1, col - 1), (row + 1, col), (row + 1, col + 1), (row, col - 1), (row, col + 1), (row - 1, col - 1),
+            (row - 1, col), (row - 1, col + 1))

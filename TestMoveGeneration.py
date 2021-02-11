@@ -29,13 +29,13 @@ class TestMoveGeneration(TestCase):
 
     def test_get_color_moves_4(self):
         board = Board(en_passant_board_white)
-        board.state.cannot_castle[True] = True  # white's king castled or moved
-        board.state.cannot_castle[False] = True  # black's king castled or moved
+        board.cannot_castle[True] = True  # white's king castled or moved
+        board.cannot_castle[False] = True  # black's king castled or moved
         white_moves = board.get_color_moves(True, 'b7b5')
         self.assertEqual(5, len(white_moves))
         board = Board(en_passant_board_black)
-        board.state.cannot_castle[True] = True  # white's king castled or moved
-        board.state.cannot_castle[False] = True  # black's king castled or moved
+        board.cannot_castle[True] = True  # white's king castled or moved
+        board.cannot_castle[False] = True  # black's king castled or moved
         black_moves = board.get_color_moves(False, 'a2a4')
         self.assertEqual(5, len(black_moves))
 

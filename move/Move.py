@@ -1,17 +1,16 @@
-from Pieces import Pieces, king_start_pos
-from move.MoveUtils import col_to_uci_dict, row_to_uci_dict, castle_kingside, castle_queenside
+from Pieces import Pieces, king_start_pos, value_to_piece_short
+from move.MoveUtils import castle_kingside, castle_queenside
+
+# move = capture of a piece with value 0 = Pieces.OO
 
 
 class Move:
-    def __init__(self, row_1, col_1, row_2, col_2):
+    def __init__(self, row_1, col_1, row_2, col_2, to_piece=Pieces.OO):
         self.row_1 = row_1
         self.col_1 = col_1
         self.row_2 = row_2
         self.col_2 = col_2
-
-    def __str__(self):
-        return col_to_uci_dict[self.col_1] + row_to_uci_dict[self.row_1] + col_to_uci_dict[self.col_2] + \
-               row_to_uci_dict[self.row_2]
+        self.to_piece = to_piece
 
     def do_move(self, board):
         board.board[self.row_2][self.col_2] = board.board[self.row_1][self.col_1]
@@ -19,17 +18,74 @@ class Move:
 
     def undo_move(self, board):
         board.board[self.row_1][self.col_1] = board.board[self.row_2][self.col_2]
-        board.board[self.row_2][self.col_2] = Pieces.OO
+        board.board[self.row_2][self.col_2] = self.to_piece
 
 
-class Capture(Move):
-    def __init__(self, row_1, col_1, row_2, col_2, to_piece):
-        super().__init__(row_1, col_1, row_2, col_2)
-        self.to_piece = to_piece
+class KingMove(Move):  # castling rights unchanged (castling was already not possible)
+    def __init__(self, row_1, col_1, row_2, col_2, is_white, to_piece=Pieces.OO):
+        super().__init__(row_1, col_1, row_2, col_2, to_piece)
+        self.is_white = is_white
+
+    def do_move(self, board):
+        board.king_pos[self.is_white] = (self.row_2, self.col_2)
+        super().do_move(board)
 
     def undo_move(self, board):
-        board.board[self.row_1][self.col_1] = board.board[self.row_2][self.col_2]
-        board.board[self.row_2][self.col_2] = self.to_piece
+        board.king_pos[self.is_white] = (self.row_1, self.col_1)
+        super().undo_move(board)
+
+
+class MoveCastlingRightsChange(Move):  # change castling rights related to a rook or king's capture/move
+    def __init__(self, row_1, col_1, row_2, col_2, is_white, to_piece=Pieces.OO):
+        super().__init__(row_1, col_1, row_2, col_2, to_piece)
+        self.is_white = is_white
+
+    def do_move(self, board):
+        if value_to_piece_short[board.board[self.row_1][self.col_1]] == 'k':
+            board.king_pos[self.is_white] = (self.row_2, self.col_2)
+            board.cannot_castle[self.is_white] = True
+        else:  # rook
+            board.rook_moved[(self.row_1, self.col_1)] = True
+        super().do_move(board)
+
+    def undo_move(self, board):
+        if value_to_piece_short[board.board[self.row_2][self.col_2]] == 'k':
+            board.king_pos[self.is_white] = (self.row_2, self.col_2)
+            board.cannot_castle[self.is_white] = False
+        else:  # rook
+            board.rook_moved[(self.row_1, self.col_1)] = False
+        super().undo_move(board)
+
+
+class Castle:
+    def __init__(self, kingside, is_white):
+        self.kingside = kingside
+        self.is_white = is_white
+
+    def do_move(self, board):
+        (row, col) = king_start_pos[self.is_white]
+        if self.kingside:
+            castle_kingside(board.board, row, col)
+            board.king_pos[self.is_white] = (row, col + 2)
+        else:
+            castle_queenside(board.board, row, col)
+            board.king_pos[self.is_white] = (row, col - 2)
+        board.cannot_castle[self.is_white] = True
+
+    def undo_move(self, board):
+        (row, col) = king_start_pos[self.is_white]
+        if self.kingside:
+            board.board[row][col] = board.board[row][col + 2]
+            board.board[row][col + 2] = Pieces.OO
+            board.board[row][col + 3] = board.board[row][col + 1]
+            board.board[row][col + 1] = Pieces.OO
+        else:
+            board.board[row][col] = board.board[row][col - 2]
+            board.board[row][col - 2] = Pieces.OO
+            board.board[row][col - 4] = board.board[row][col - 1]
+            board.board[row][col - 1] = Pieces.OO
+        board.king_pos[self.is_white] = king_start_pos[self.is_white]
+        board.cannot_castle[self.is_white] = False
 
 
 class EnPassant(Move):
@@ -61,64 +117,3 @@ class Promotion(Move):
     def undo_move(self, board):
         board.board[self.row_1][self.col_1] = self.original_piece
         board.board[self.row_2][self.col_2] = self.to_piece
-
-
-class MoveStateChange(Move):
-    def __init__(self, row_1, col_1, row_2, col_2, game_state_old, game_state_new):
-        super().__init__(row_1, col_1, row_2, col_2)
-        self.game_state_old = game_state_old
-        self.game_state_new = game_state_new
-
-    def do_move(self, board):
-        super().do_move(board)
-        board.state = self.game_state_new
-
-    def undo_move(self, board):
-        super().undo_move(board)
-        board.state = self.game_state_old
-
-
-class CaptureStateChange(Capture):
-    def __init__(self, row_1, col_1, row_2, col_2, to_piece, game_state_old, game_state_new):
-        super().__init__(row_1, col_1, row_2, col_2, to_piece)
-        self.game_state_old = game_state_old
-        self.game_state_new = game_state_new
-
-    def do_move(self, board):
-        super().do_move(board)
-        board.state = self.game_state_new
-
-    def undo_move(self, board):
-        super().undo_move(board)
-        board.state = self.game_state_old
-
-
-class Castle:
-    def __init__(self, kingside, is_white):
-        self.kingside = kingside
-        self.is_white = is_white
-
-    def do_move(self, board):
-        (row, col) = king_start_pos[self.is_white]
-        if self.kingside:
-            castle_kingside(board.board, row, col)
-            board.state.king_pos[self.is_white] = (row, col + 2)
-        else:
-            castle_queenside(board.board, row, col)
-            board.state.king_pos[self.is_white] = (row, col - 2)
-        board.state.cannot_castle[self.is_white] = True
-
-    def undo_move(self, board):
-        (row, col) = king_start_pos[self.is_white]
-        if self.kingside:
-            board.board[row][col] = board.board[row][col + 2]
-            board.board[row][col + 2] = Pieces.OO
-            board.board[row][col + 3] = board.board[row][col + 1]
-            board.board[row][col + 1] = Pieces.OO
-        else:
-            board.board[row][col] = board.board[row][col - 2]
-            board.board[row][col - 2] = Pieces.OO
-            board.board[row][col - 4] = board.board[row][col - 1]
-            board.board[row][col - 1] = Pieces.OO
-        board.state.king_pos[self.is_white] = king_start_pos[self.is_white]
-        board.state.cannot_castle[self.is_white] = False

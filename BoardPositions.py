@@ -77,6 +77,6 @@ def init_no_attack_board():
 
 def init_attack_board():
     board = Board(attack_board)
-    board.state.cannot_castle[True] = True  # white castled
-    board.state.king_pos[True] = (9, 8)
+    board.cannot_castle[True] = True  # white castled
+    board.king_pos[True] = (9, 8)
     return board
