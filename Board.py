@@ -4,6 +4,10 @@ from move.MoveUtils import uci_move_to_move
 from move.Move import Move, EnPassant, Castle, KingMove, Promotion, MoveCastlingRightsChange
 
 
+def get_direction(diff, divider):
+    return diff[0] // divider, diff[1] // divider
+
+
 class Board:
 
     def __init__(self, board):
@@ -32,13 +36,69 @@ class Board:
         return self.filter_invalid_moves(is_white, pseudo_moves_sorted_list)
 
     def filter_invalid_moves(self, is_white, pseudo_moves):
+        is_king_attacked = self.is_king_attacked(is_white)
+        (king_row, king_col) = self.king_pos[is_white]
         valid_moves = []
         for move in pseudo_moves:
-            move.do_move(self)
-            if not self.is_king_attacked(is_white):
+            if move.__class__.__name__ == 'Castle':
                 valid_moves.append(move)
-            move.undo_move(self)
+            elif value_to_piece_short[self.board[move.row_1][move.col_1]] == 'k':
+                if not self.is_square_attacked(move.row_2, move.col_2, is_white):
+                    valid_moves.append(move)
+            elif self.keep_invalid_non_king_move(move, is_king_attacked, is_white, king_row, king_col):
+                valid_moves.append(move)
         return valid_moves
+
+    def keep_invalid_non_king_move(self, move, is_king_attacked, is_white, king_row, king_col):  # for non king moves only
+        return self.keep_invalid_move_king_attacked(is_white, king_col, king_row, move) if is_king_attacked else self.keep_invalid_move_king_safe(is_white, king_col, king_row, move)
+
+    def keep_invalid_move_king_attacked(self, is_white, king_col, king_row, move):
+        row_2, col_2 = move.row_2, move.col_2
+        if abs(king_row - row_2) == abs(king_col - col_2):  # destination in in bishop direction of the king, can it protect the king?
+            diff = (king_row - row_2, king_col - col_2)
+            direction = get_direction(diff, abs(diff[0]))
+            if not self.can_protect(is_white, direction, row_2, col_2, 'b'):
+                return False
+        elif king_row == row_2 or king_col == col_2:  # destination is in rook direction of the king, can it protect the king?
+            diff = (king_row - row_2, king_col - col_2)
+            direction = get_direction(diff, max(abs(diff[0]), abs(diff[1])))
+            if not self.can_protect(is_white, direction, row_2, col_2, 'r'):
+                return False
+        else:
+            return False
+        return not self.is_king_attacked_after_move(is_white, move)  # see if king still attacked after move that can protect king
+
+    def can_protect(self, is_white, direction, row_2, col_2, target):
+        while self.board[row_2][col_2] == Pieces.OO:
+            row_2, col_2 = row_2 + direction[0], col_2 + direction[1]
+        return is_enemy[is_white](self.board[row_2][col_2]) and value_to_piece_short[self.board[row_2][col_2]] in ('q', target)
+
+    def keep_invalid_move_king_safe(self, is_white, king_col, king_row, move):
+        row_1, col_1 = move.row_1, move.col_1
+        if abs(king_row - row_1) != abs(king_col - col_1) and king_row != row_1 and king_col != col_1:  # if no chance to leave king exposed
+            return True
+        row_2, col_2 = move.row_2, move.col_2
+        diff_2 = (king_row - row_2, king_col - col_2)
+        if abs(king_row - row_2) == abs(king_col - col_2):  # bishop direction
+            direction_2 = get_direction(diff_2, abs(diff_2[0]))
+        elif king_row == row_2 or king_col == col_2:  # rook direction
+            direction_2 = get_direction(diff_2, max(abs(diff_2[0]), abs(diff_2[1])))
+        else:
+            return not self.is_king_attacked_after_move(is_white, move)
+        diff_1 = (king_row - row_1, king_col - col_1)
+        if abs(king_row - row_1) == abs(king_col - col_1):  # bishop direction
+            direction_1 = get_direction(diff_1, abs(diff_1[0]))
+        else:  # rook direction
+            direction_1 = get_direction(diff_1, max(abs(diff_1[0]), abs(diff_1[1])))
+        if direction_1 == direction_2:  # if direction stays the same, king will stay unattacked (even if piece was pinned)
+            return True
+        return not self.is_king_attacked_after_move(is_white, move)
+
+    def is_king_attacked_after_move(self, is_white, move):
+        move.do_move(self)
+        is_king_still_attacked = self.is_king_attacked(is_white)
+        move.undo_move(self)
+        return is_king_still_attacked
 
     def add_piece_moves(self, piece_val, moves):
         piece_int = self.board[piece_val[0]][piece_val[1]]
@@ -173,11 +233,12 @@ class Board:
             moves["castle"].append(Castle(False, is_white))
 
     def safe_to_castle_kingside(self, row, col, is_white):
-        return self.board[row][col + 1] == Pieces.OO and self.board[row][col + 2] == Pieces.OO and not self.is_square_attacked(row, col + 1,
-                                                                                                                               is_white)  # king's safety after castling is deliberately NOT checked here
+        return self.board[row][col + 1] == Pieces.OO and self.board[row][col + 2] == Pieces.OO and \
+               not self.is_square_attacked(row, col + 1, is_white) and not self.is_square_attacked(row, col + 2, is_white)  # todo optimize
 
     def safe_to_castle_queenside(self, row, col, is_white):
-        return self.board[row][col - 1] == Pieces.OO and self.board[row][col - 2] == Pieces.OO and self.board[row][col - 3] == Pieces.OO and not self.is_square_attacked(row, col - 1, is_white)
+        return self.board[row][col - 1] == Pieces.OO and self.board[row][col - 2] == Pieces.OO and self.board[row][col - 3] == Pieces.OO and \
+               not self.is_square_attacked(row, col - 1, is_white) and not self.is_square_attacked(row, col - 2, is_white)  # todo optimize
 
     def is_king_attacked(self, is_white):
         (king_row, king_col) = self.king_pos[is_white]

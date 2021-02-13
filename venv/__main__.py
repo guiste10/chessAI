@@ -28,12 +28,12 @@ def play_game(board, is_engine_white, n, opponents_uci_move):
             print('')
             do_uci_move(opponents_uci_move, board, not is_engine_white)
         else:
-            #import cProfile
+            # import cProfile
             # pr = cProfile.Profile()
             # pr.enable()
             print("Engine's Turn:")
             best_move_uci = get_best_move(board, opponents_uci_move, is_engine_white)
-            # pr.print_stats(sort="cumtime")
+            #pr.print_stats(sort="cumtime")
             if best_move_uci == 'no move':
                 game_over = True
                 if board.is_king_attacked(is_engine_white):

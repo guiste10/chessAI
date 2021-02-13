@@ -50,7 +50,7 @@ class MoveCastlingRightsChange(Move):  # change castling rights related to a roo
 
     def undo_move(self, board):
         if value_to_piece_short[board.board[self.row_2][self.col_2]] == 'k':
-            board.king_pos[self.is_white] = (self.row_2, self.col_2)
+            board.king_pos[self.is_white] = (self.row_1, self.col_1)
             board.cannot_castle[self.is_white] = False
         else:  # rook
             board.rook_moved[(self.row_1, self.col_1)] = False
