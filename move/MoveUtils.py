@@ -65,6 +65,6 @@ def move_to_uci_move(move):
 
 def print_moves(moves):
     for move in moves:
-        print(move, end=" ")
+        print(move_to_uci_move(move), end=' ')
     print('\n')
     print('Num moves: ' + str(len(moves)))

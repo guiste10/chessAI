@@ -72,7 +72,7 @@ def init_normal_board():
 
 
 def init_no_attack_board():
-    return Board(no_attack_board)
+    return Board(no_attack_board), 'a1a1'
 
 
 def init_attack_board():

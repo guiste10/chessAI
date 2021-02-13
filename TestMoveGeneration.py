@@ -1,31 +1,33 @@
 from unittest import TestCase
 from Board import Board
 from BoardPositions import init_normal_board, init_no_attack_board, init_attack_board, en_passant_board_black, en_passant_board_white
+from move.MoveUtils import print_moves
 
 
 # print_moves(black_moves)
 
 class TestMoveGeneration(TestCase):
     def test_get_color_moves_1(self):
-        board = init_normal_board()
+        board, enemy_move = init_normal_board()
         white_moves = board.get_color_moves(True, 'a1a1')
         black_moves = board.get_color_moves(False, 'a1a1')
         self.assertEqual(20, len(white_moves))
         self.assertEqual(20, len(black_moves))
 
     def test_get_color_moves_2(self):
-        board = init_no_attack_board()
+        board, enemy_move = init_no_attack_board()
         white_moves = board.get_color_moves(True, 'a1a1')
         black_moves = board.get_color_moves(False, 'a1a1')
         self.assertEqual(29, len(white_moves))
         self.assertEqual(29, len(black_moves))
 
     def test_get_color_moves_3(self):
-        board = init_attack_board()
+        board, enemy_move = init_attack_board()
         white_moves = board.get_color_moves(True, 'a1a1')
         black_moves = board.get_color_moves(False, 'a1a1')
         self.assertEqual(41, len(white_moves))
         self.assertEqual(43, len(black_moves))
+
 
     def test_get_color_moves_4(self):
         board = Board(en_passant_board_white)
@@ -40,7 +42,7 @@ class TestMoveGeneration(TestCase):
         self.assertEqual(5, len(black_moves))
 
     def test_is_attacked_for_white(self):
-        board = init_attack_board()
+        board, enemy_move = init_attack_board()
         is_white = True
         self.assertEqual(board.is_square_attacked(2, 3, is_white), True)
         self.assertEqual(board.is_square_attacked(2, 4, is_white), True)
@@ -79,7 +81,7 @@ class TestMoveGeneration(TestCase):
         self.assertEqual(board.is_square_attacked(9, 9, is_white), False)
 
     def test_is_attacked_for_black(self):
-        board = init_attack_board()
+        board, enemy_move = init_attack_board()
         is_white = False
         self.assertEqual(board.is_square_attacked(2, 3, is_white), False)
         self.assertEqual(board.is_square_attacked(2, 4, is_white), False)

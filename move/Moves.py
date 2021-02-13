@@ -5,7 +5,7 @@ from move.MoveUtils import castle_kingside, castle_queenside
 
 
 class Move:
-    def __init__(self, row_1, col_1, row_2, col_2, to_piece=Pieces.OO):
+    def __init__(self, row_1, col_1, row_2, col_2, to_piece=Pieces.OO, _is_white=False):
         self.row_1 = row_1
         self.col_1 = col_1
         self.row_2 = row_2
@@ -22,7 +22,7 @@ class Move:
 
 
 class KingMove(Move):  # castling rights unchanged (castling was already not possible)
-    def __init__(self, row_1, col_1, row_2, col_2, is_white, to_piece=Pieces.OO):
+    def __init__(self, row_1, col_1, row_2, col_2, to_piece=Pieces.OO, is_white=False):
         super().__init__(row_1, col_1, row_2, col_2, to_piece)
         self.is_white = is_white
 
@@ -36,7 +36,7 @@ class KingMove(Move):  # castling rights unchanged (castling was already not pos
 
 
 class MoveCastlingRightsChange(Move):  # change castling rights related to a rook or king's capture/move
-    def __init__(self, row_1, col_1, row_2, col_2, is_white, to_piece=Pieces.OO):
+    def __init__(self, row_1, col_1, row_2, col_2, to_piece=Pieces.OO, is_white=False):
         super().__init__(row_1, col_1, row_2, col_2, to_piece)
         self.is_white = is_white
 
