@@ -5,11 +5,10 @@ from Ai import get_best_move, visit_node
 
 def main():
     print("Engine started", "\n")
-    #board = init_normal_board()
-    board = init_attack_board()
+    #board, opponents_uci_move = init_normal_board()
+    board, opponents_uci_move = init_attack_board()
     print(board)
     is_engine_white = False
-    opponents_uci_move = 'none' #  used for en passant purposes
     if input("Engine white?: y/n ") == 'y':
         is_engine_white = True
         n = 1

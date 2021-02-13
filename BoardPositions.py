@@ -68,7 +68,7 @@ en_passant_board_black = [[Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.X
 
 
 def init_normal_board():
-    return Board(normal_board)
+    return Board(normal_board), 'a1a1'
 
 
 def init_no_attack_board():
@@ -79,4 +79,5 @@ def init_attack_board():
     board = Board(attack_board)
     board.cannot_castle[True] = True  # white castled
     board.king_pos[True] = (9, 8)
-    return board
+    opponents_uci_move = 'a8a8'
+    return board, opponents_uci_move
