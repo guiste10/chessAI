@@ -210,5 +210,6 @@ def evaluate(board):
     score = 0
     for row in range(2, 10):
         for col in range(2, 10):
-            score += piece_value_to_piece_score[board[row][col]] + piece_value_to_placement_score[board[row][col]][row][col]
+            if board[row][col] != 0:
+                score += piece_value_to_piece_score[board[row][col]] + piece_value_to_placement_score[board[row][col]][row][col]
     return score

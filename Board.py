@@ -40,7 +40,9 @@ class Board:
                 if is_enemy[not is_white](self.board[row][col]):
                     self.add_piece_moves(row, col, pseudo_moves_dict, enemy_move[3], enemy_move[2])
         self.add_en_passant(enemy_move, pseudo_moves_dict)
-        pseudo_moves_sorted_list = pseudo_moves_dict["en passant"] + pseudo_moves_dict["recap"] + pseudo_moves_dict["promotion"] + pseudo_moves_dict["castle"] + pseudo_moves_dict["move"] + pseudo_moves_dict["capture"] + pseudo_moves_dict["move2"]
+        # pseudo_moves_sorted_list = pseudo_moves_dict["en passant"] + pseudo_moves_dict["recap"] + pseudo_moves_dict["promotion"] + pseudo_moves_dict["castle"] + pseudo_moves_dict["move"] + pseudo_moves_dict["capture"] + pseudo_moves_dict["move2"]
+        pseudo_moves_sorted_list = [*pseudo_moves_dict["en passant"], *pseudo_moves_dict["recap"], *pseudo_moves_dict["promotion"],
+                                    *pseudo_moves_dict["castle"], *pseudo_moves_dict["move"], *pseudo_moves_dict["capture"], *pseudo_moves_dict["move2"]]
         return self.filter_invalid_moves(is_white, pseudo_moves_sorted_list)
 
     def add_piece_moves(self, row, col, moves, enemy_move_row, enemy_move_col):
