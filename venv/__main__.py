@@ -10,7 +10,7 @@ def main():
     board, opponents_uci_move = init_attack_board()
     print(board)
     is_engine_white = False
-    if input("Engine white?: y/n ") == 'y':
+    if input("Is the engine white?: y/n ") == 'y':
         is_engine_white = True
         n = 1
     else:
