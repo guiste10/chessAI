@@ -1,6 +1,5 @@
 from move.MoveUtils import move_to_uci_move
 import Evaluation
-import time
 
 max_utility = 999999
 max_depth = 4
@@ -9,15 +8,8 @@ count = 0
 
 def get_best_move(board, opponents_uci_move, is_engine_white):
     best_move = 'no move'
-    start = time.time()
     for depth in range(0, max_depth):
         best_move = alpha_beta_at_root(board, opponents_uci_move, is_engine_white)
-    time_dif = time.time() - start
-    print('Time: ' + str(time_dif))
-    print('#nodes: ' + str(visit_node()))
-    print('#nodes/sec: ' + str(visit_node()//time_dif) + '\n')
-    eval = Evaluation.evaluate(board.board)
-    print('eval now: ' + str(eval))
     return best_move
 
 
@@ -28,24 +20,23 @@ def visit_node():
 
 
 def alpha_beta_at_root(board, opponents_uci_move, is_engine_white):
-    best_move_uci = 'no move'
+    best_move = 'no move'
     best_move_val = -max_utility if is_engine_white else max_utility
     moves = board.get_color_moves(is_engine_white, opponents_uci_move)
     if len(moves) == 1:
         return move_to_uci_move(moves[0])
     for move in moves:
         visit_node()
-        uci_move = move_to_uci_move(move)
         move.do_move(board)
-        val = alpha_beta(board, uci_move, not is_engine_white, -max_utility, max_utility, 1)
+        val = alpha_beta(board, opponents_uci_move, not is_engine_white, -max_utility, max_utility, 1)
         move.undo_move(board)
         if is_engine_white:
             if val > best_move_val:
-                best_move_val, best_move_uci = val, uci_move
+                best_move, best_move_val = move, val
         else:
             if val < best_move_val:
-                best_move_val, best_move_uci = val, uci_move
-    return best_move_uci
+                best_move, best_move_val = move, val
+    return best_move, best_move_val
 
 
 def alpha_beta(board, opponents_uci_move, is_engine_white, alpha, beta, depth):

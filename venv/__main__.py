@@ -2,6 +2,7 @@ from Board import Board
 from BoardPositions import init_normal_board, init_attack_board
 from move.MoveUtils import do_uci_move, move_to_uci_move
 from Ai import get_best_move, visit_node
+import time
 
 def main():
     print("Engine started", "\n")
@@ -24,14 +25,17 @@ def play_game(board, is_engine_white, n, opponents_uci_move):
     while not game_over:
         if n % 2 == 0:
             opponents_uci_move = input("Enter move: ").replace(" ", "")
-            print('')
             do_uci_move(opponents_uci_move, board, not is_engine_white)
         else:
             # import cProfile
             # pr = cProfile.Profile()
             # pr.enable()
-            print("Engine's Turn:")
-            best_move_uci = get_best_move(board, opponents_uci_move, is_engine_white)
+            print("\nEngine's Turn:")
+            start = time.time()
+            best_move, best_move_val = get_best_move(board, opponents_uci_move, is_engine_white)
+            best_move_uci = move_to_uci_move(best_move)
+            time_dif = time.time() - start
+            print_stats(best_move_uci, best_move_val, time_dif)
             #pr.print_stats(sort="cumtime")
             if best_move_uci == 'no move':
                 game_over = True
@@ -40,10 +44,16 @@ def play_game(board, is_engine_white, n, opponents_uci_move):
                 else:
                     print("Stalemate !")
             else:
-                do_uci_move(best_move_uci, board, is_engine_white)
-                print(best_move_uci)
+                best_move.do_move(board)
         print(board)
         n += 1
+
+
+def print_stats(best_move_uci, best_move_val, time_dif):
+    print('Time: ' + str(time_dif))
+    print('#nodes: ' + str(visit_node()))
+    print('#nodes/sec: ' + str(visit_node() // time_dif) + '\n')
+    print('Move: ' + best_move_uci + '\nEvaluation: ' + str(best_move_val) + '\n')
 
 
 if __name__ == "__main__":
