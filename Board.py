@@ -28,7 +28,8 @@ class Board:
 
     def __str__(self):
         board_str = "\t"
-        for letter in 'abcdefgh': board_str += letter + '\t'
+        for letter in 'abcdefgh':
+            board_str += letter + '\t'
         board_str += '\n'
         for row in range(2, 10):
             board_str += str(8 - (row - 2)) + '\t'
@@ -36,7 +37,8 @@ class Board:
                 board_str += value_to_piece_img[self.board[row][col]] + '\t'
             board_str += str(8 - (row - 2)) + '\n'
         board_str += '\t'
-        for letter in 'abcdefgh': board_str += letter + '\t'
+        for letter in 'abcdefgh':
+            board_str += letter + '\t'
         return board_str + '\n'
 
     def get_color_moves(self, is_white, enemy_uci_move):  # enemy_uci_move done before calling this method

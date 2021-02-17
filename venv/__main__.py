@@ -53,7 +53,8 @@ def print_stats(best_move_uci, best_move_val, time_dif):
     print('Time: ' + str(time_dif))
     print('#nodes: ' + str(visit_node()))
     print('#nodes/sec: ' + str(visit_node() // time_dif) + '\n')
-    print('Move: ' + best_move_uci + '\nEvaluation: ' + str(best_move_val) + '\n')
+    print('Move: ' + best_move_uci)
+    print('Evaluation at bottom node: ' + str(best_move_val) + '\n')
 
 
 if __name__ == "__main__":
