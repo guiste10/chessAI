@@ -1,13 +1,13 @@
 from Board import Board
 from BoardPositions import init_normal_board, init_attack_board
 from move.MoveUtils import do_uci_move, move_to_uci_move
-from Ai import get_best_move, visit_node
+from Ai import get_best_move, visit_node, use_transposition_table
 import time
 
 def main():
     print("Engine started", "\n")
-    #board, opponents_uci_move = init_normal_board()
-    board, opponents_uci_move = init_attack_board()
+    board, opponents_uci_move = init_normal_board()
+    #board, opponents_uci_move = init_attack_board()
     print(board)
     is_engine_white = False
     if input("Is the engine white?: y/n ") == 'y':
@@ -54,7 +54,8 @@ def print_stats(best_move_uci, best_move_val, time_dif):
     print('#nodes: ' + str(visit_node()))
     print('#nodes/sec: ' + str(visit_node() // time_dif) + '\n')
     print('Move: ' + best_move_uci)
-    print('Evaluation at bottom node: ' + str(best_move_val) + '\n')
+    print('Evaluation at bottom node: ' + str(best_move_val))
+    print('Num transposition table hits: ' + str(use_transposition_table()) + '\n')
 
 
 if __name__ == "__main__":

@@ -15,16 +15,6 @@ file_hash = {col:rand_int_64() for col in range(2, 10)}
 # castling rights change because king, qRook or kRook at column 'col' moves for white or black
 castling_rights_hash = {color:{col:rand_int_64() for col in (2, 6, 9)} for color in (True, False)}
 
-# start = rand_int_64()
-# print(start)
-# side = rand_int_64()
-# piece = rand_int_64()
-# start ^= side ^ piece
-# print(start)
-# start ^= side ^ piece  # or piece ^ side doesn't matter
-# print(start)
-
-
 # a = rand_int_64()
 # b = rand_int_64()
 # c = a ^ b
