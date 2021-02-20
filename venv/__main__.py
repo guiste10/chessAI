@@ -6,8 +6,8 @@ import time
 
 def main():
     print("Engine started", "\n")
-    #board, opponents_uci_move = init_normal_board()
-    board, opponents_uci_move = init_attack_board()
+    board, opponents_uci_move = init_normal_board()
+    #board, opponents_uci_move = init_attack_board()
     print(board)
     is_engine_white = False
     if input("Is the engine white?: y/n ") == 'y':
