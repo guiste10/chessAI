@@ -1,5 +1,5 @@
 from Pieces import piece_to_descriptor, value_to_piece, value_to_piece_img, value_to_piece_short, promotion_color_to_value, rook_directions, bishop_directions, queen_directions, is_enemy, \
-    get_knight_squares, get_king_squares, rook_start_pos, possible_promotions
+    get_knight_squares, get_king_squares, get_attacking_enemy_pawn_squares, rook_start_pos, possible_promotions
 from Zobrist import init_hash
 from move import Moves
 from move.MoveUtils import uci_move_to_move
@@ -50,7 +50,7 @@ class Board:
                     self.add_piece_moves(row, col, pseudo_moves_dict, enemy_move[3], enemy_move[2])
         self.add_en_passant(enemy_move, pseudo_moves_dict, is_white)
         pseudo_moves_sorted_list = [*pseudo_moves_dict["en passant"], *pseudo_moves_dict["recap"], *pseudo_moves_dict["capture"], *pseudo_moves_dict["promotion"], *pseudo_moves_dict["castle"],
-                                    *pseudo_moves_dict["move"], *pseudo_moves_dict["move2"]]  # todo when faster: search move before capture (because the best move is often not a capture)
+                                    *pseudo_moves_dict["move"], *pseudo_moves_dict["move2"]]
         return self.filter_invalid_moves(is_white, pseudo_moves_sorted_list)
 
     def add_piece_moves(self, row, col, moves, enemy_move_row, enemy_move_col):
@@ -163,35 +163,40 @@ class Board:
             elif value_to_piece_short[self.board[move.row_1][move.col_1]] == 'k':
                 if not self.is_square_attacked(move.row_2, move.col_2, is_white):
                     valid_moves.append(move)
-            elif self.keep_invalid_non_king_move(move, is_king_attacked, is_white, king_row, king_col):
+            elif self.keep_non_king_move(move, is_king_attacked, is_white, king_row, king_col):
                 valid_moves.append(move)
         return valid_moves
 
-    def keep_invalid_non_king_move(self, move, is_king_attacked, is_white, king_row, king_col):  # for non king moves only
-        return self.keep_invalid_move_king_attacked(is_white, king_col, king_row, move) if is_king_attacked else self.keep_invalid_move_king_safe(is_white, king_col, king_row, move)
+    def keep_non_king_move(self, move, is_king_attacked, is_white, king_row, king_col):  # for non king moves only
+        return self.keep_move_king_attacked(is_white, king_col, king_row, move) if is_king_attacked else self.keep_move_king_safe(is_white, king_col, king_row, move)
 
-    def keep_invalid_move_king_attacked(self, is_white, king_col, king_row, move):
+    def keep_move_king_attacked(self, is_white, king_col, king_row, move):
         row_2, col_2 = move.row_2, move.col_2
         if abs(king_row - row_2) == abs(king_col - col_2):  # destination in in bishop direction of the king, can it protect the king?
             diff = (king_row - row_2, king_col - col_2)
             direction = get_direction(diff, abs(diff[0]))
-            if not self.can_protect(is_white, direction, row_2, col_2, 'b'):
+            enemy_pawn_attacking_king_squares = get_attacking_enemy_pawn_squares(king_row, king_col, is_white)
+            if not ((row_2, col_2) in enemy_pawn_attacking_king_squares and promotion_color_to_value[('p', not is_white)] == self.board[row_2][col_2]) or \
+                    (self.can_protect(direction, row_2, col_2, (promotion_color_to_value[('q', not is_white)], promotion_color_to_value[('b', not is_white)]))):
                 return False
         elif king_row == row_2 or king_col == col_2:  # destination is in rook direction of the king, can it protect the king?
             diff = (king_row - row_2, king_col - col_2)
             direction = get_direction(diff, max(abs(diff[0]), abs(diff[1])))
-            if not self.can_protect(is_white, direction, row_2, col_2, 'r'):
+            if not self.can_protect(direction, row_2, col_2, (promotion_color_to_value[('q', not is_white)], promotion_color_to_value[('r', not is_white)])):
+                return False
+        elif (row_2, col_2) in get_knight_squares(king_row, king_col):  # destination is in knight direction of the king, can it protect the king?
+            if self.board[row_2][col_2] != promotion_color_to_value[('n', not is_white)]:
                 return False
         else:
             return False
         return not self.is_king_attacked_after_move(is_white, move)  # see if king still attacked after move that can protect king
 
-    def can_protect(self, is_white, direction, row_2, col_2, target):
+    def can_protect(self, direction, row_2, col_2, target_values):
         while self.board[row_2][col_2] == 0:
             row_2, col_2 = row_2 + direction[0], col_2 + direction[1]
-        return is_enemy[is_white](self.board[row_2][col_2]) and value_to_piece_short[self.board[row_2][col_2]] in ('q', target)
+        return self.board[row_2][col_2] in target_values
 
-    def keep_invalid_move_king_safe(self, is_white, king_col, king_row, move):
+    def keep_move_king_safe(self, is_white, king_col, king_row, move):
         row_1, col_1 = move.row_1, move.col_1
         if abs(king_row - row_1) != abs(king_col - col_1) and king_row != row_1 and king_col != col_1:  # if no chance to leave king exposed
             return True
@@ -235,8 +240,7 @@ class Board:
         for square in enemy_king_squares:
             if self.board[square[0]][square[1]] == promotion_color_to_value[('k', not is_white)]:
                 return True
-        enemy_pawn_squares = [(row - 1, col - 1), (row - 1, col + 1)] if is_white else [(row + 1, col - 1), (row + 1, col + 1)]
-        for square in enemy_pawn_squares:
+        for square in get_attacking_enemy_pawn_squares(row, col, is_white):
             if self.board[square[0]][square[1]] == promotion_color_to_value[('p', not is_white)]:
                 return True
         return False
