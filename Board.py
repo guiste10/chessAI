@@ -4,6 +4,7 @@ from Zobrist import init_hash
 from move import Moves
 from move.MoveUtils import uci_move_to_move
 from move.Moves import Move, EnPassant, Castle, Promotion
+import copy
 
 
 def get_direction(diff, divider):
@@ -20,7 +21,7 @@ def add_to_captures(enemy_move_row, enemy_move_col, move, moves, to_row, to_col)
 class Board:
 
     def __init__(self, board):
-        self.board = board
+        self.board = copy.deepcopy(board)
         self.king_pos = {False: (2, 6), True: (9, 6)}
         self.cannot_castle = {True: False, False: False}
         self.rook_moved = {(2, 2): False, (2, 9): False, (9, 2): False, (9, 9): False}
@@ -162,7 +163,7 @@ class Board:
             if move.__class__.__name__ == 'Castle':
                 valid_moves.append(move)
             elif value_to_piece_short[self.board[move.row_1][move.col_1]] == 'k':
-                if not self.is_square_attacked(move.row_2, move.col_2, is_white):
+                if not self.is_king_attacked_after_move(is_white, move):
                     valid_moves.append(move)
             elif self.non_king_move_leaves_king_safe(move, is_king_attacked, is_white, self.king_pos[is_white][0], self.king_pos[is_white][1]):
                 valid_moves.append(move)
@@ -217,6 +218,8 @@ class Board:
         row_2, col_2 = move.row_2, move.col_2
         diff_2 = (king_row - row_2, king_col - col_2)
         if abs(king_row - row_2) == abs(king_col - col_2):  # bishop direction
+            if diff_2[0] == 0:
+                print(69)
             direction_2 = get_direction(diff_2, abs(diff_2[0]))
         elif king_row == row_2 or king_col == col_2:  # rook direction
             direction_2 = get_direction(diff_2, max(abs(diff_2[0]), abs(diff_2[1])))

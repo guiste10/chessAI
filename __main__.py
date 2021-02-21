@@ -1,44 +1,60 @@
-from Board import Board
 from BoardPositions import init_normal_board, init_attack_board
 from move.MoveUtils import do_uci_move, move_to_uci_move
 from Ai import get_best_move, visit_node, use_transposition_table
 import time
-import fileinput
 import logging
-import os
+from pathlib import Path
 
 
 def play_uci():
-    os.makedirs("logs")
-    logger = logging.getLogger('factory')
-    logger.setLevel(logging.DEBUG)
-    fh = logging.FileHandler('log/factory.log')
-    fh.setLevel(logging.DEBUG)
-    formatter = logging.Formatter('%(asctime)s %(message)s')
-    fh.setFormatter(formatter)
-    logger.addHandler(fh)
+    Path("venv/logs").mkdir(parents=True, exist_ok=True)
+    logging.basicConfig(filename='venv/logs/uci.log', level=logging.DEBUG)
     board, previous_uci_move = init_normal_board()
     is_white = True
-    for line in fileinput.input():
-        logger.debug(line)
+    logging.debug('engine started executing')
+    quit = False
+    while not quit:
+        line = input()
+        logging.debug(line)
         line = line.rstrip()
         if line == 'uci':
-            print('id name Angry-nerd')
-            print('id author Guillaume Neirinckx')
-            print('uciok')
+            print('id name Angry Nerd', flush=True)
+            print('id author Guillaume Neirinckx', flush=True)
+            print('uciok', flush=True)
         elif line == 'ucinewgame':
-            pass
+            board, previous_uci_move = init_normal_board()
+            is_white = True
         elif line == 'isready':
-            print('readyok')
+            print('readyok', flush=True)
+        elif line == 'quit':
+            quit = True
         else:
             line_splitted = line.split()
-            if line[0] == 'position':
-                pass
-            elif line[0] == 'go':
-                best_move, best_move_val = get_best_move(board, opponents_uci_move, is_engine_white)
-                best_move_uci = move_to_uci_move(best_move)
-                print(best_move_uci)
+            if line_splitted[0] == 'position' and line_splitted[1] == 'startpos':
+                board, previous_uci_move = init_normal_board()
+                is_white = True
+                if len(line_splitted) > 3:
+                    uci_moves = line_splitted[3:]
+                    for uci_move in uci_moves:
+                        do_uci_move(uci_move, board, is_white)
+                        is_white, previous_uci_move = not is_white, uci_move
 
+            elif line_splitted[0] == 'go':
+                best_move, best_move_val = get_best_move(board, previous_uci_move, is_white)
+                best_move_uci = move_to_uci_move(best_move)
+                print('bestmove ' + best_move_uci, flush=True)
+
+
+def debug_position():
+    board, previous_uci_move = init_normal_board()
+    is_white = True
+    moves = ['e2e4','b8c6','g1f3','g8f6','e4e5','f6e4','d2d3','e4c5','d3d4','c5e6','d4d5','e6d4','f3d4','c6e5','b1c3','c7c5','d5c6']
+    for move in moves:
+        do_uci_move(move, board, is_white)
+        is_white = not is_white
+    best_move, best_move_val = get_best_move(board, previous_uci_move, is_white)
+    best_move_uci = move_to_uci_move(best_move)
+    print('bestmove ' + best_move_uci)
 
 
 def play_on_console():
@@ -46,7 +62,6 @@ def play_on_console():
     # board, opponents_uci_move = init_normal_board()
     board, opponents_uci_move = init_attack_board()
     print(board)
-    is_engine_white = False
     if input("Is the engine white?: y/n ") == 'y':
         is_engine_white = True
         n = 1
@@ -69,7 +84,7 @@ def play_on_console():
             best_move_uci = move_to_uci_move(best_move)
             time_dif = time.time() - start
             print_stats(best_move_uci, best_move_val, time_dif)
-            #pr.print_stats(sort="cumtime")
+            # pr.print_stats(sort="cumtime")
             if best_move_uci == 'no move':
                 game_over = True
                 if board.is_king_attacked(is_engine_white):
@@ -92,5 +107,6 @@ def print_stats(best_move_uci, best_move_val, time_dif):
 
 
 if __name__ == "__main__":
-    play_on_console()
-    # play_uci()
+    # play_on_console()
+    # debug_position()
+    play_uci()

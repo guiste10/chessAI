@@ -1,8 +1,9 @@
-import numpy as np
+from numpy.random import randint
+from numpy import int64
 
 
 def rand_int_64():
-    return np.random.randint(2147483647, 9223372036854775807, dtype=np.int64)
+    return randint(2147483647, 9223372036854775807, dtype=int64)
 
 
 # access hash: piece_hash_for_squares[piece_val][row][col]

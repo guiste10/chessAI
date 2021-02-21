@@ -43,7 +43,7 @@ def do_uci_move(uci_move, board, is_white):
             board.board[row_1][col_1] = Pieces.OO
     else:  # en passant/move/capture
         if value_to_piece_short[board.board[row_1][col_1]] == 'p' and col_1 != col_2 and board.board[row_2][col_2] == Pieces.OO:
-            board.board[row_2][col_1] = Pieces.OO  # en passant kill
+            board.board[row_1][col_2] = Pieces.OO  # en passant kill
         board.board[row_2][col_2] = board.board[row_1][col_1]
         board.board[row_1][col_1] = Pieces.OO
         if (row_1, col_1) in rook_start_pos[is_white]:

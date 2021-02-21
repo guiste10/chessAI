@@ -35,7 +35,7 @@ def alpha_beta_at_root(board, opponents_uci_move, is_engine_white, depth_max, tr
     moves = board.get_color_moves(is_engine_white, opponents_uci_move)
     visit_node()
     if len(moves) == 1:
-        return move_to_uci_move(moves[0])
+        return moves[0], Evaluation.evaluate(board.board)
     if board.current_hash in transposition_table:  # depth always smaller (iterative deepening)
         best_move_calculated = transposition_table[board.current_hash][2]
         moves.insert(0, best_move_calculated)  # search best move found earlier first (+ duplicate move by doing so :/ )
