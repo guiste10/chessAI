@@ -2,20 +2,20 @@ from BoardPositions import init_normal_board, init_attack_board
 from move.MoveUtils import do_uci_move, move_to_uci_move
 from Ai import get_best_move, visit_node, use_transposition_table
 import time
-import logging
-from pathlib import Path
+# import logging
+# from pathlib import Path
 
 
 def play_uci():
-    Path("venv/logs").mkdir(parents=True, exist_ok=True)
-    logging.basicConfig(filename='venv/logs/uci.log', level=logging.DEBUG)
+    # Path("venv/logs").mkdir(parents=True, exist_ok=True)
+    # logging.basicConfig(filename='venv/logs/uci.log', level=logging.DEBUG)
+    # logging.debug('engine started executing')
     board, previous_uci_move = init_normal_board()
     is_white = True
-    logging.debug('engine started executing')
-    quit = False
-    while not quit:
+    quit_now = False
+    while not quit_now:
         line = input()
-        logging.debug(line)
+        # logging.debug(line)
         line = line.rstrip()
         if line == 'uci':
             print('id name Angry Nerd', flush=True)
@@ -27,7 +27,7 @@ def play_uci():
         elif line == 'isready':
             print('readyok', flush=True)
         elif line == 'quit':
-            quit = True
+            quit_now = True
         else:
             line_splitted = line.split()
             if line_splitted[0] == 'position' and line_splitted[1] == 'startpos':
@@ -85,7 +85,7 @@ def play_on_console():
             time_dif = time.time() - start
             print_stats(best_move_uci, best_move_val, time_dif)
             # pr.print_stats(sort="cumtime")
-            if best_move_uci == 'no move':
+            if best_move_uci == 'none':
                 game_over = True
                 if board.is_king_attacked(is_engine_white):
                     print("Engine checkmated !")
