@@ -1,9 +1,6 @@
-from Pieces import Pieces, king_start_pos, value_to_piece_short, promotion_color_to_value
+from Pieces import Pieces, king_start_pos, value_to_piece_short, promotion_color_to_value, king_start_col, queen_rook_col, king_rook_col
 from move.MoveUtils import castle_kingside, castle_queenside
 import Zobrist as Zob
-
-
-# move = capture of a piece with value 0 = Pieces.OO
 
 
 class Move:
@@ -69,8 +66,14 @@ class MoveCastlingRightsChange(Move):  # change castling rights related to a roo
         super().undo_move(board)
 
     def update_hash(self, board, piece_val):
+        if self.col_1 == king_start_col:
+            board.current_hash ^= Zob.castling_rights_hash[self.is_white][True]
+            board.current_hash ^= Zob.castling_rights_hash[self.is_white][False]
+        elif self.col_1 == king_rook_col:
+            board.current_hash ^= Zob.castling_rights_hash[self.is_white][True]
+        else:
+            board.current_hash ^= Zob.castling_rights_hash[self.is_white][False]
         super().update_hash(board, piece_val)
-        board.current_hash ^= Zob.castling_rights_hash[self.is_white][self.col_1]
 
 
 class Castle:
@@ -110,10 +113,10 @@ class Castle:
         board.current_hash ^= Zob.side_hash[self.is_white] ^ Zob.piece_hash_for_squares[king_val][king_row][king_col]
         if self.kingside:
             board.current_hash ^= Zob.piece_hash_for_squares[king_val][king_row][king_col + 2] ^ Zob.piece_hash_for_squares[rook_val][king_row][king_col + 3] ^ \
-                                  Zob.piece_hash_for_squares[rook_val][king_row][king_col + 1] ^ Zob.castling_rights_hash[self.is_white][king_col + 3]
+                                  Zob.piece_hash_for_squares[rook_val][king_row][king_col + 1] ^ Zob.castling_rights_hash[self.is_white][True]
         else:
             board.current_hash ^= Zob.piece_hash_for_squares[king_val][king_row][king_col - 2] ^ Zob.piece_hash_for_squares[rook_val][king_row][king_col - 4] ^ \
-                                  Zob.piece_hash_for_squares[rook_val][king_row][king_col - 1] ^ Zob.castling_rights_hash[self.is_white][king_col - 4]
+                                  Zob.piece_hash_for_squares[rook_val][king_row][king_col - 1] ^ Zob.castling_rights_hash[self.is_white][False]
 
 
 class EnPassant(Move):

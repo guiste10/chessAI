@@ -15,10 +15,13 @@ class Pieces:
     BK = -6
 
 
-king_start_pos = {False: (2, 6), True: (9, 6)}
+queen_rook_col = 2
+king_start_col = 6
+king_rook_col = 9
+king_start_pos = {False: (2, king_start_col), True: (9, king_start_col)}
 king_castled_kingside_pos = {False: (2, 8), True: (9, 8)}
 king_castled_queenside_pos = {False: (2, 4), True: (9, 4)}
-rook_start_pos = {False: ((2, 2), (2, 9)), True: ((9, 2), (9, 9))}
+rook_start_pos = {False: ((2, queen_rook_col), (2, king_rook_col)), True: ((9, queen_rook_col), (9, king_rook_col))}
 
 piece_to_descriptor = {'WP': (True, 'pawn'), 'WR': (True, 'rook'), 'WN': (True, 'knight'), 'WB': (True, 'bishop'), 'WQ': (True, 'queen'), 'WK': (True, 'king'), 'BP': (False, 'pawn'),
                        'BR': (False, 'rook'), 'BN': (False, 'knight'), 'BB': (False, 'bishop'), 'BQ': (False, 'queen'), 'BK': (False, 'king')}

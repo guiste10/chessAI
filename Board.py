@@ -41,7 +41,7 @@ class Board:
             board_str += letter + '\t'
         return board_str + '\n'
 
-    def get_color_moves(self, is_white, enemy_uci_move):  # enemy_uci_move done before calling this method
+    def get_color_moves(self, is_white, enemy_uci_move):
         enemy_move = uci_move_to_move(enemy_uci_move)
         pseudo_moves_dict = {"move": [], "move2": [], "capture": [], "recap": [], "en passant": [], "promotion": [], "castle": []}
         for row in range(2, 10):
@@ -61,21 +61,19 @@ class Board:
         return getattr(self, method_name)(row, col, is_white, moves, enemy_move_row, enemy_move_col)
 
     def add_pawn_moves(self, row, col, is_white, moves, enemy_move_row, enemy_move_col):
-        # for color: next row, row after next row, start row, promoted row
-        target_row = (row - 1, row - 2, 8, 2, row + 1, row + 2, 3, 9)
-        idx = 0 if is_white else 4
-        if row == target_row[idx + 2] and self.board[target_row[idx]][col] == 0 and self.board[target_row[idx + 1]][col] == 0:
-            moves["move"].append(Move(row, col, target_row[idx + 1], col, is_white))
-        if target_row[idx] == target_row[idx + 3]:  # promotion on next row
-            self.add_pawn_promotion_moves(row, col, target_row[idx], is_white, moves)
+        target_row = (row - 1, row - 2, 8, 2) if is_white else (row + 1, row + 2, 3, 9)  # next row, row after next row, start row, promoted row
+        if row == target_row[2] and self.board[target_row[0]][col] == 0 and self.board[target_row[1]][col] == 0:
+            moves["move"].append(Move(row, col, target_row[1], col, is_white))
+        if target_row[0] == target_row[3]:  # promotion on next row
+            self.add_pawn_promotion_moves(row, col, target_row[0], is_white, moves)
         else:
-            if self.board[target_row[idx]][col] == 0:
-                moves["move"].append(Move(row, col, target_row[idx], col, is_white))
+            if self.board[target_row[0]][col] == 0:
+                moves["move"].append(Move(row, col, target_row[0], col, is_white))
             for capture_col in (col - 1, col + 1):
-                if is_enemy[is_white](self.board[target_row[idx]][capture_col]):
-                    to_piece = self.board[target_row[idx]][capture_col]
-                    move = Move(row, col, target_row[idx], capture_col, is_white, to_piece)
-                    add_to_captures(enemy_move_row, enemy_move_col, move, moves, target_row[idx], capture_col)
+                if is_enemy[is_white](self.board[target_row[0]][capture_col]):
+                    to_piece = self.board[target_row[0]][capture_col]
+                    move = Move(row, col, target_row[0], capture_col, is_white, to_piece)
+                    add_to_captures(enemy_move_row, enemy_move_col, move, moves, target_row[0], capture_col)
 
     def add_pawn_promotion_moves(self, row, col, promotion_row, is_white, moves):
         if self.board[promotion_row][col] == 0:
@@ -91,10 +89,9 @@ class Board:
         (col_1, row_1, col_2, row_2) = enemy_move_performed
         enemy_piece_moved = self.board[row_2][col_2]
         if abs(row_1 - row_2) == 2 and value_to_piece_short[enemy_piece_moved] == 'p':
-            if self.board[row_2][col_2 - 1] == - enemy_piece_moved:
-                moves["en passant"].append(EnPassant(row_2, col_2 - 1, (row_1 + row_2) // 2, col_2, is_white))
-            if self.board[row_2][col_2 + 1] == - enemy_piece_moved:
-                moves["en passant"].append(EnPassant(row_2, col_2 + 1, (row_1 + row_2) // 2, col_2, is_white))
+            for en_passant_col in (col_2 - 1, col_2 + 1):
+                if self.board[row_2][en_passant_col] == - enemy_piece_moved:
+                    moves["en passant"].append(EnPassant(row_2, en_passant_col, (row_1 + row_2) // 2, col_2, is_white))
 
     def add_queen_moves(self, row, col, is_white, moves, enemy_move_row, enemy_move_col):
         self.add_directed_moves(row, col, queen_directions, is_white, moves, enemy_move_row, enemy_move_col, getattr(Moves, 'Move'), 'move')
@@ -120,12 +117,6 @@ class Board:
     def add_knight_moves(self, row, col, is_white, moves, enemy_move_row, enemy_move_col):
         self.add_square_moves(row, col, get_knight_squares(row, col), is_white, moves, enemy_move_row, enemy_move_col, getattr(Moves, 'Move'), 'move')
 
-    def add_king_moves(self, row, col, is_white, moves, enemy_move_row, enemy_move_col):
-        (move_class_name, move_storage_name) = ('KingMove', 'move2') if self.cannot_castle[is_white] else ('MoveCastlingRightsChange', 'move')
-        self.add_square_moves(row, col, get_king_squares(row, col), is_white, moves, enemy_move_row, enemy_move_col, getattr(Moves, move_class_name), move_storage_name)
-        if not self.cannot_castle[is_white] and not self.is_square_attacked(row, col, is_white):
-            self.add_castling_moves(row, col, is_white, moves)
-
     def add_square_moves(self, row, col, to_squares, is_white, moves, enemy_move_row, enemy_move_col, move_class, move_storage_name):
         for to_square in to_squares:
             to_square_val = self.board[to_square[0]][to_square[1]]
@@ -134,6 +125,18 @@ class Board:
             elif is_enemy[is_white](to_square_val):
                 move = move_class(row, col, to_square[0], to_square[1], is_white, to_square_val)
                 add_to_captures(enemy_move_col, enemy_move_row, move, moves, to_square[0], to_square[1])
+
+    def add_king_moves(self, row, col, is_white, moves, enemy_move_row, enemy_move_col):
+        (move_class_name, move_storage_name) = ('KingMove', 'move2') if self.cannot_castle[is_white] or self.both_rooks_moved(is_white) else ('MoveCastlingRightsChange', 'move')
+        self.add_square_moves(row, col, get_king_squares(row, col), is_white, moves, enemy_move_row, enemy_move_col, getattr(Moves, move_class_name), move_storage_name)
+        if not self.cannot_castle[is_white] and not self.is_square_attacked(row, col, is_white):
+            self.add_castling_moves(row, col, is_white, moves)
+
+    def both_rooks_moved(self, is_white):
+        for start_pos in rook_start_pos[is_white]:
+            if not self.rook_moved[start_pos]:
+                return False
+        return True
 
     def add_castling_moves(self, row, col, is_white, moves):
         if not self.rook_moved[(row, col + 3)] and self.board[row][col + 3] == promotion_color_to_value[('r', is_white)] and self.safe_to_castle_kingside(row, col, is_white):
@@ -145,9 +148,8 @@ class Board:
         return self.board[row][col + 1] == 0 and self.board[row][col + 2] == 0 and not self.is_square_attacked(row, col + 1, is_white) and not self.is_square_attacked(row, col + 2, is_white)
 
     def safe_to_castle_queenside(self, row, col, is_white):
-        return self.board[row][col - 1] == 0 and self.board[row][col - 2] == 0 and self.board[row][col - 3] == 0 and not self.is_square_attacked(row, col - 1,
-                                                                                                                                                 is_white) and not self.is_square_attacked(row, col - 2,
-                                                                                                                                                                                           is_white)
+        return self.board[row][col - 1] == 0 and self.board[row][col - 2] == 0 and self.board[row][col - 3] == 0 and \
+               not self.is_square_attacked(row, col - 1, is_white) and not self.is_square_attacked(row, col - 2, is_white)
 
     def is_king_attacked(self, is_white):
         (king_row, king_col) = self.king_pos[is_white]
@@ -155,7 +157,6 @@ class Board:
 
     def filter_invalid_moves(self, is_white, pseudo_moves):
         is_king_attacked = self.is_king_attacked(is_white)
-        (king_row, king_col) = self.king_pos[is_white]
         valid_moves = []
         for move in pseudo_moves:
             if move.__class__.__name__ == 'Castle':
@@ -163,7 +164,7 @@ class Board:
             elif value_to_piece_short[self.board[move.row_1][move.col_1]] == 'k':
                 if not self.is_square_attacked(move.row_2, move.col_2, is_white):
                     valid_moves.append(move)
-            elif self.non_king_move_leaves_king_safe(move, is_king_attacked, is_white, king_row, king_col):
+            elif self.non_king_move_leaves_king_safe(move, is_king_attacked, is_white, self.king_pos[is_white][0], self.king_pos[is_white][1]):
                 valid_moves.append(move)
         return valid_moves
 
@@ -237,22 +238,15 @@ class Board:
         return is_king_still_attacked
 
     def is_square_attacked(self, row, col, is_white):
-        for direction in bishop_directions:
-            to_col, to_row = self.advance_when_empty(row, col, direction)
-            if self.board[to_row][to_col] == promotion_color_to_value[('b', not is_white)] or self.board[to_row][to_col] == promotion_color_to_value[('q', not is_white)]:
-                return True
-        for direction in rook_directions:
-            to_col, to_row = self.advance_when_empty(row, col, direction)
-            if self.board[to_row][to_col] == promotion_color_to_value[('r', not is_white)] or self.board[to_row][to_col] == promotion_color_to_value[('q', not is_white)]:
-                return True
-        enemy_knight_squares = get_knight_squares(row, col)
-        for square in enemy_knight_squares:
-            if self.board[square[0]][square[1]] == promotion_color_to_value[('n', not is_white)]:
-                return True
-        enemy_king_squares = get_king_squares(row, col)
-        for square in enemy_king_squares:
-            if self.board[square[0]][square[1]] == promotion_color_to_value[('k', not is_white)]:
-                return True
+        for (directions, piece) in ((bishop_directions, 'b'), (rook_directions, 'r')):
+            for direction in directions:
+                to_col, to_row = self.advance_when_empty(row, col, direction)
+                if self.board[to_row][to_col] == promotion_color_to_value[(piece, not is_white)] or self.board[to_row][to_col] == promotion_color_to_value[('q', not is_white)]:
+                    return True
+        for (squares, piece) in ((get_knight_squares(row, col), 'n'), (get_king_squares(row, col), 'k')):
+            for square in squares:
+                if self.board[square[0]][square[1]] == promotion_color_to_value[(piece, not is_white)]:
+                    return True
         for square in get_attacking_enemy_pawn_squares(row, col, is_white):
             if self.board[square[0]][square[1]] == promotion_color_to_value[('p', not is_white)]:
                 return True
