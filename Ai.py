@@ -2,7 +2,7 @@ from move.MoveUtils import move_to_uci_move
 import Evaluation
 
 max_utility = 999999
-maximum_depth = 5  # not counting evaluation nodes (e.g. for maximum_depth = 4: max (at depth 0),min,max,min,evaluate (at depth 4))
+maximum_depth = 4  # not counting evaluation nodes (e.g. for maximum_depth = 4: max (at depth 0),min,max,min,evaluate (at depth 4))
 count = -1
 transposition_count = -1
 

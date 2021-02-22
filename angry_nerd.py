@@ -107,6 +107,6 @@ def print_stats(best_move_uci, best_move_val, time_dif):
 
 
 if __name__ == "__main__":
-    # play_on_console()
     # debug_position()
+    # play_on_console()
     play_uci()
