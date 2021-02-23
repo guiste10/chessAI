@@ -14,6 +14,19 @@ normal_board = [[Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, 
                 [Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX],
                 [Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX]]
 
+debug_board = [[Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX],
+                [Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX],
+                [Pc.XX, Pc.XX, Pc.BR, Pc.BN, Pc.BB, Pc.OO, Pc.BK, Pc.OO, Pc.BN, Pc.BR, Pc.XX, Pc.XX],
+                [Pc.XX, Pc.XX, Pc.BP, Pc.BP, Pc.BP, Pc.BP, Pc.OO, Pc.BP, Pc.BP, Pc.BP, Pc.XX, Pc.XX],
+                [Pc.XX, Pc.XX, Pc.OO, Pc.OO, Pc.OO, Pc.OO, Pc.OO, Pc.OO, Pc.OO, Pc.OO, Pc.XX, Pc.XX],
+                [Pc.XX, Pc.XX, Pc.OO, Pc.OO, Pc.OO, Pc.OO, Pc.BP, Pc.OO, Pc.OO, Pc.OO, Pc.XX, Pc.XX],
+                [Pc.XX, Pc.XX, Pc.OO, Pc.WP, Pc.OO, Pc.OO, Pc.OO, Pc.OO, Pc.OO, Pc.BQ, Pc.XX, Pc.XX],
+                [Pc.XX, Pc.XX, Pc.OO, Pc.OO, Pc.WP, Pc.WP, Pc.WP, Pc.OO, Pc.OO, Pc.OO, Pc.XX, Pc.XX],
+                [Pc.XX, Pc.XX, Pc.WP, Pc.OO, Pc.OO, Pc.WN, Pc.WP, Pc.OO, Pc.WP, Pc.WP, Pc.XX, Pc.XX],
+                [Pc.XX, Pc.XX, Pc.WR, Pc.OO, Pc.WB, Pc.WQ, Pc.WK, Pc.WB, Pc.WN, Pc.WR, Pc.XX, Pc.XX],
+                [Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX],
+                [Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX]]
+
 no_attack_board = [[Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX],
                    [Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX],
                    [Pc.XX, Pc.XX, Pc.BR, Pc.BN, Pc.BB, Pc.BQ, Pc.BK, Pc.BB, Pc.OO, Pc.BR, Pc.XX, Pc.XX],

@@ -1,5 +1,6 @@
 from move.MoveUtils import move_to_uci_move
 import Evaluation
+import time
 
 max_utility = 999999
 maximum_depth = 4  # not counting evaluation nodes (e.g. for maximum_depth = 4: max (at depth 0),min,max,min,evaluate (at depth 4))
@@ -11,13 +12,17 @@ def get_best_move(board, opponents_uci_move, is_engine_white):
     best_move = 'no move'
     best_score = 0
     transposition_table = {}  # {hash: (depth, score, best_move)}
-    for depth_max in range(1, maximum_depth + 1):
+    start = time.time()
+    depth_max = 1
+    while depth_max <= maximum_depth or (time.time()-start) < 1:
         best_move, best_score = alpha_beta(board, opponents_uci_move, is_engine_white, -max_utility, max_utility, depth_max, depth_max, transposition_table)
+        depth_max += 1
+
     transposition_table.clear()
-    if best_move == 'no move':
+    if best_move == 'none':
         moves = board.get_color_moves(is_engine_white, opponents_uci_move)
         if len(moves) == 0:
-            return 'no move', 0
+            return 'none', 0
         return moves[0], 0
     return best_move, best_score
 
@@ -66,7 +71,7 @@ def alpha_beta(board, opponents_uci_move, is_engine_white, alpha, beta, depth, d
             if beta <= alpha:
                 break
     if best_move == 'none' and not board.is_king_attacked(is_engine_white):
-        best_val = 0  # not +-max_utility !
+        best_val = 0  # not + or - max_utility because it is a pat!
     transposition_table[board.current_hash] = (depth, best_val, best_move)
     return best_move, best_val
 

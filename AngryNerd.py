@@ -59,8 +59,8 @@ def debug_position():
 
 def play_on_console():
     print("Engine started", "\n")
-    # board, opponents_uci_move = init_normal_board()
-    board, opponents_uci_move = init_attack_board()
+    board, opponents_uci_move = init_normal_board()
+    #board, opponents_uci_move = init_attack_board()
     print(board)
     if input("Is the engine white?: y/n ") == 'y':
         is_engine_white = True
@@ -81,17 +81,17 @@ def play_on_console():
             print("\nEngine's Turn:")
             start = time.time()
             best_move, best_move_val = get_best_move(board, opponents_uci_move, is_engine_white)
-            best_move_uci = move_to_uci_move(best_move)
-            time_dif = time.time() - start
-            print_stats(best_move_uci, best_move_val, time_dif)
             # pr.print_stats(sort="cumtime")
-            if best_move_uci == 'none':
+            if best_move == 'none':
                 game_over = True
                 if board.is_king_attacked(is_engine_white):
-                    print("Engine checkmated !")
+                    print("\nEngine checkmated !\n")
                 else:
-                    print("Stalemate !")
+                    print("\nStalemate !\n")
             else:
+                best_move_uci = move_to_uci_move(best_move)
+                time_dif = time.time() - start
+                print_stats(best_move_uci, best_move_val, time_dif)
                 best_move.do_move(board)
         print(board)
         n += 1
@@ -101,9 +101,10 @@ def print_stats(best_move_uci, best_move_val, time_dif):
     print('Time: ' + str(time_dif))
     print('#nodes: ' + str(visit_node()))
     print('#nodes/sec: ' + str(visit_node() // time_dif) + '\n')
-    print('Move: ' + best_move_uci)
-    print('Evaluation at bottom node: ' + str(best_move_val))
     print('# transposition table hits: ' + str(use_transposition_table()) + '\n')
+    print('Move: ' + best_move_uci)
+    print('Evaluation at bottom node: ' + str(best_move_val) + '\n')
+
 
 
 if __name__ == "__main__":

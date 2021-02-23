@@ -183,7 +183,7 @@ class Board:
         return False  # move cannot protect the checked king
 
     def protects_king_bishop_direction(self, move, is_white, king_row, king_col, row_2, col_2):
-        diff = (king_row - row_2, king_col - col_2)
+        diff = (row_2 - king_row, col_2 - king_col)
         direction = get_direction(diff, abs(diff[0]))
         target_values = [promotion_color_to_value[(target, not is_white)] for target in ('q', 'b')]
         if not (self.protect_king_from_pawn(row_2, col_2, king_row, king_col, is_white) or self.protect_king_from_target(direction, row_2, col_2, target_values)):
