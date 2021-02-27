@@ -1,4 +1,4 @@
-from Pieces import Pieces, king_start_pos, value_to_piece_short, promotion_color_to_value, king_start_col, queen_rook_col, king_rook_col
+from Pieces import Pieces, king_start_pos, value_to_piece_short, promotion_color_to_value, king_start_col, queen_rook_start_col, king_rook_start_col
 from move.MoveUtils import castle_kingside, castle_queenside
 import Zobrist as Zob
 
@@ -69,7 +69,7 @@ class MoveCastlingRightsChange(Move):  # change castling rights related to a roo
         if self.col_1 == king_start_col:
             board.current_hash ^= Zob.castling_rights_hash[self.is_white][True]
             board.current_hash ^= Zob.castling_rights_hash[self.is_white][False]
-        elif self.col_1 == king_rook_col:
+        elif self.col_1 == king_rook_start_col:
             board.current_hash ^= Zob.castling_rights_hash[self.is_white][True]
         else:
             board.current_hash ^= Zob.castling_rights_hash[self.is_white][False]

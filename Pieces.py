@@ -15,18 +15,17 @@ class Pieces:
     BK = -6
 
 
-queen_rook_col = 2
+start_row_black = 2
+start_row_white = 9
+queen_rook_start_col = 2
 king_start_col = 6
-king_rook_col = 9
-king_start_pos = {False: (2, king_start_col), True: (9, king_start_col)}
-king_castled_kingside_pos = {False: (2, 8), True: (9, 8)}
-king_castled_queenside_pos = {False: (2, 4), True: (9, 4)}
-rook_start_pos = {False: ((2, queen_rook_col), (2, king_rook_col)), True: ((9, queen_rook_col), (9, king_rook_col))}
+king_rook_start_col = 9
+start_row = {False: start_row_black, True: start_row_white}
+king_start_pos = {False: (start_row_black, king_start_col), True: (start_row_white, king_start_col)}
+rook_start_pos = {False: ((start_row_black, queen_rook_start_col), (start_row_black, king_rook_start_col)), True: ((start_row_white, queen_rook_start_col), (start_row_white, king_rook_start_col))}
 
-piece_to_descriptor = {'WP': (True, 'pawn'), 'WR': (True, 'rook'), 'WN': (True, 'knight'), 'WB': (True, 'bishop'), 'WQ': (True, 'queen'), 'WK': (True, 'king'), 'BP': (False, 'pawn'),
-                       'BR': (False, 'rook'), 'BN': (False, 'knight'), 'BB': (False, 'bishop'), 'BQ': (False, 'queen'), 'BK': (False, 'king')}
-
-value_to_piece = {0: '0 ', 1: 'WP', 2: 'WR', 3: 'WN', 4: 'WB', 5: 'WQ', 6: 'WK', -1: 'BP', -2: 'BR', -3: 'BN', -4: 'BB', -5: 'BQ', -6: 'BK'}
+value_to_descriptor = {1: 'pawn', 2: 'rook', 3: 'knight', 4: 'bishop', 5: 'queen', 6: 'king',
+                       -1: 'pawn', -2: 'rook', -3: 'knight', -4: 'bishop', -5: 'queen', -6: 'king'}
 
 promotion_color_to_value = {('k', True): 6, ('q', True): 5, ('r', True): 2, ('b', True): 4, ('n', True): 3, ('p', True): 1, ('k', False): -6, ('q', False): -5, ('r', False): -2, ('b', False): -4,
                             ('n', False): -3, ('p', False): -1}
@@ -50,11 +49,11 @@ queen_directions = ((0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (1, -1), (-1, -1),
 
 
 def get_knight_squares(row, col):
-    return ((row - 1, col + 2), (row + 1, col + 2), (row + 2, col + 1), (row + 2, col - 1), (row + 1, col - 2), (row - 1, col - 2), (row - 2, col - 1), (row - 2, col + 1))
+    return (row - 1, col + 2), (row + 1, col + 2), (row + 2, col + 1), (row + 2, col - 1), (row + 1, col - 2), (row - 1, col - 2), (row - 2, col - 1), (row - 2, col + 1)
 
 
 def get_king_squares(row, col):
-    return ((row + 1, col - 1), (row + 1, col), (row + 1, col + 1), (row, col - 1), (row, col + 1), (row - 1, col - 1), (row - 1, col), (row - 1, col + 1))
+    return (row + 1, col - 1), (row + 1, col), (row + 1, col + 1), (row, col - 1), (row, col + 1), (row - 1, col - 1), (row - 1, col), (row - 1, col + 1)
 
 
 def get_attacking_enemy_pawn_squares(row, col, is_white):

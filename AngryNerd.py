@@ -2,6 +2,8 @@ from BoardPositions import init_normal_board, init_attack_board
 from move.MoveUtils import do_uci_move, move_to_uci_move
 from Ai import get_best_move, visit_node, use_transposition_table
 import time
+
+
 # import logging
 # from pathlib import Path
 
@@ -48,7 +50,11 @@ def play_uci():
 def debug_position():
     board, previous_uci_move = init_normal_board()
     is_white = True
-    moves = ['e2e4','b8c6','g1f3','g8f6','e4e5','f6e4','d2d3','e4c5','d3d4','c5e6','d4d5','e6d4','f3d4','c6e5','b1c3','c7c5','d5c6']
+    moves = ['d2d4', 'b8c6', 'e2e4', 'e7e5', 'g1e2', 'e5d4', 'e2d4', 'd8e7',
+             'd1d3', 'e7b4', 'c1d2', 'b4b2', 'd4b3', 'f8b4', 'b1c3', 'c6e5',
+             'd3h3', 'g8f6', 'a2a3', 'f6e4', 'c3e4', 'b2c2', 'e4c3', 'c2b3',
+             'a3b4', 'e8g8', 'b4b5', 'e5f3', 'g2f3', 'f8e8', 'c3e2', 'd7d5',
+             'h3g3', 'b3b2', 'a1c1', 'b2b5', 'h1g1']
     for move in moves:
         do_uci_move(move, board, is_white)
         is_white = not is_white
@@ -60,7 +66,7 @@ def debug_position():
 def play_on_console():
     print("Engine started", "\n")
     board, opponents_uci_move = init_normal_board()
-    #board, opponents_uci_move = init_attack_board()
+    # board, opponents_uci_move = init_attack_board()
     print(board)
     if input("Is the engine white?: y/n ") == 'y':
         is_engine_white = True
@@ -104,7 +110,6 @@ def print_stats(best_move_uci, best_move_val, time_dif):
     print('# transposition table hits: ' + str(use_transposition_table()) + '\n')
     print('Move: ' + best_move_uci)
     print('Evaluation at bottom node: ' + str(best_move_val) + '\n')
-
 
 
 if __name__ == "__main__":

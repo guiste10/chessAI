@@ -14,7 +14,7 @@ def get_best_move(board, opponents_uci_move, is_engine_white):
     transposition_table = {}  # {hash: (depth, score, best_move)}
     start = time.time()
     depth_max = 1
-    while depth_max <= maximum_depth or (time.time()-start) < 1:
+    while depth_max <= maximum_depth or (time.time()-start) < 0.7:
         best_move, best_score = alpha_beta(board, opponents_uci_move, is_engine_white, -max_utility, max_utility, depth_max, depth_max, transposition_table)
         depth_max += 1
 
