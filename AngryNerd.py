@@ -13,7 +13,7 @@ def play_uci():
     # logging.basicConfig(filename='venv/logs/uci.log', level=logging.DEBUG)
     # logging.debug('engine started executing')
     board, previous_uci_move = init_normal_board()
-    is_white = True
+    is_white, use_hard_coded, turn = True, True, 1
     quit_now = False
     while not quit_now:
         line = input()
@@ -25,7 +25,7 @@ def play_uci():
             print('uciok', flush=True)
         elif line == 'ucinewgame':
             board, previous_uci_move = init_normal_board()
-            is_white = True
+            is_white, use_hard_coded, turn = True, True, 1
         elif line == 'isready':
             print('readyok', flush=True)
         elif line == 'quit':
@@ -39,11 +39,12 @@ def play_uci():
 
             elif line_splitted[0] == 'go':
                 time_left_sec = int(line_splitted[2])/1000 if is_white else int(line_splitted[4])/1000
-                best_move, best_move_val = get_best_move(board, previous_uci_move, is_white, time_left_sec)
-                best_move_uci = move_to_uci_move(best_move)
+                best_move, best_move_val, use_hard_coded = get_best_move(board, previous_uci_move, is_white, time_left_sec, turn, use_hard_coded)
+                best_move_uci = best_move if use_hard_coded else move_to_uci_move(best_move)
                 print('bestmove ' + best_move_uci, flush=True)
                 do_uci_move(best_move_uci, board, is_white)
                 is_white = not is_white
+                turn += 1
 
 
 def debug_position():
@@ -54,12 +55,13 @@ def debug_position():
     for move in moves:
         do_uci_move(move, board, is_white)
         is_white = not is_white
-    best_move, best_move_val = get_best_move(board, previous_uci_move, is_white, 9999)
+    best_move, best_move_val, _ = get_best_move(board, previous_uci_move, is_white, 9999, 50, False)
     best_move_uci = move_to_uci_move(best_move)
     print('bestmove ' + best_move_uci)
 
 
 def play_on_console():
+    turn = 1
     print("Engine started", "\n")
     board, opponents_uci_move = init_normal_board()
     # board, opponents_uci_move = init_attack_board()
@@ -72,6 +74,7 @@ def play_on_console():
         n = 0
     print('')
     game_over = False
+    use_hard_coded = True
     while not game_over:
         if n % 2 == 0:
             opponents_uci_move = input("Enter move: ").replace(" ", "")
@@ -82,7 +85,7 @@ def play_on_console():
             # pr.enable()
             print("\nEngine's Turn:")
             start = time.time()
-            best_move, best_move_val = get_best_move(board, opponents_uci_move, is_engine_white, 9999)
+            best_move, best_move_val, use_hard_coded = get_best_move(board, opponents_uci_move, is_engine_white, 9999, turn, use_hard_coded)
             # pr.print_stats(sort="cumtime")
             if best_move == 'none':
                 game_over = True
@@ -91,10 +94,10 @@ def play_on_console():
                 else:
                     print("\nStalemate !\n")
             else:
-                best_move_uci = move_to_uci_move(best_move)
-                time_dif = time.time() - start
-                print_stats(best_move_uci, best_move_val, time_dif)
-                best_move.do_move(board)
+                best_move_uci = best_move if use_hard_coded else move_to_uci_move(best_move)
+                do_uci_move(best_move_uci, board, is_engine_white)
+                # print_stats(best_move_uci, best_move_val, time.time() - start)
+                turn += 1
         print(board)
         n += 1
 
@@ -110,5 +113,5 @@ def print_stats(best_move_uci, best_move_val, time_dif):
 
 if __name__ == "__main__":
     # debug_position()
-    # play_on_console()
+    #play_on_console()
     play_uci()
