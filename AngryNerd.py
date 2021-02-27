@@ -33,9 +33,12 @@ def play_uci():
         else:
             line_splitted = line.split()
             if line_splitted[0] == 'position' and line_splitted[1] == 'startpos' and len(line_splitted) > 2:
-                previous_uci_move = line_splitted[-1]
-                do_uci_move(previous_uci_move, board, is_white)
-                is_white = True if len(line_splitted) == 2 or len(line_splitted) % 2 == 1 else False
+                is_white = True
+                if len(line_splitted) > 3:
+                    uci_moves = line_splitted[3:]
+                    for uci_move in uci_moves:
+                        do_uci_move(uci_move, board, is_white)
+                        is_white, previous_uci_move = not is_white, uci_move
 
             elif line_splitted[0] == 'go':
                 if len(line_splitted) >= 5:
@@ -45,15 +48,15 @@ def play_uci():
                 best_move, best_move_val, use_hard_coded = get_best_move(board, previous_uci_move, is_white, time_left_sec, turn, use_hard_coded)
                 best_move_uci = best_move if use_hard_coded else move_to_uci_move(best_move)
                 print('bestmove ' + best_move_uci, flush=True)
-                do_uci_move(best_move_uci, board, is_white)
                 turn += 1
+                board, previous_uci_move = init_normal_board()
 
 
 def debug_position():
     board, previous_uci_move = init_normal_board()
     is_white = True
-    moves = ['a2a4','e7e5','f2f4','e5f4','g2g3','f8d6','a4a5','f4g3','d2d3','g3h2','g1h3',
-             'd8h4','h3f2','d6g3','c1e3','b8c6','h1g1']
+    moves = ['g1f3','e7e6','g2g3','d7d5','f1g2','g8f6','a2a3','c7c5','e1g1','b8c6','d2d3','b7b6','b1c3','e6e5','c1g5','h7h6','g5f6','g7f6','e2e4','c6e7','c3d5','e7g6','b2b4','c8b7','b4c5','b6c5','d5e3','h6h5','f1e1','h5h4','d1b1','d8d7','f3h4','a8b8','h4g6','h8h7','g6f8','e8f8']
+
     for move in moves:
         do_uci_move(move, board, is_white)
         is_white = not is_white
@@ -114,6 +117,6 @@ def print_stats(best_move_uci, best_move_val, time_dif):
 
 
 if __name__ == "__main__":
-    # debug_position()
+    #debug_position()
     #play_on_console()
     play_uci()
