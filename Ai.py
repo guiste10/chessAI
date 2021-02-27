@@ -13,7 +13,7 @@ def get_best_move(board, opponents_uci_move, is_engine_white, time_left_sec, tur
         hard_coded_move = get_hard_coded_opening_move(board, is_engine_white, turn)
         if hard_coded_move != 'stop_using_hardcoded':
             return hard_coded_move, 0, True
-    if time_left_sec < 40:
+    if time_left_sec < 60:
         maximum_depth = 4
     else:
         maximum_depth = 5
@@ -26,7 +26,7 @@ def get_best_move(board, opponents_uci_move, is_engine_white, time_left_sec, tur
     if len(moves) == 1:  # move is forced
         return moves[0], 0, False
     else:
-        while depth_max <= maximum_depth or (time_left_sec > 40 and time.time() - start < 0.5):
+        while depth_max <= maximum_depth or (time_left_sec > 60 and time.time() - start < 0.7):
             best_move, best_score = alpha_beta(board, opponents_uci_move, is_engine_white, -max_utility, max_utility, depth_max, depth_max, transposition_table)
             depth_max += 1
         transposition_table.clear()

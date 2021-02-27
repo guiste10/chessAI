@@ -4,20 +4,20 @@ from Ai import get_best_move, visit_node, use_transposition_table
 import time
 
 
-# import logging
-# from pathlib import Path
+import logging
+from pathlib import Path
 
 
 def play_uci():
-    # Path("venv/logs").mkdir(parents=True, exist_ok=True)
-    # logging.basicConfig(filename='venv/logs/uci.log', level=logging.DEBUG)
-    # logging.debug('engine started executing')
+    Path("venv/logs").mkdir(parents=True, exist_ok=True)
+    logging.basicConfig(filename='venv/logs/uci.log', level=logging.DEBUG)
+    logging.debug('engine started executing')
     board, previous_uci_move = init_normal_board()
     is_white, use_hard_coded, turn = True, True, 1
     quit_now = False
     while not quit_now:
         line = input()
-        # logging.debug(line)
+        logging.debug(line)
         line = line.rstrip()
         if line == 'uci':
             print('id name Angry Nerd', flush=True)
@@ -25,7 +25,7 @@ def play_uci():
             print('uciok', flush=True)
         elif line == 'ucinewgame':
             board, previous_uci_move = init_normal_board()
-            is_white, use_hard_coded, turn = True, True, 1
+            use_hard_coded, turn = True, 1
         elif line == 'isready':
             print('readyok', flush=True)
         elif line == 'quit':
@@ -35,15 +35,17 @@ def play_uci():
             if line_splitted[0] == 'position' and line_splitted[1] == 'startpos' and len(line_splitted) > 2:
                 previous_uci_move = line_splitted[-1]
                 do_uci_move(previous_uci_move, board, is_white)
-                is_white = not is_white
+                is_white = True if len(line_splitted) == 2 or len(line_splitted) % 2 == 1 else False
 
             elif line_splitted[0] == 'go':
-                time_left_sec = int(line_splitted[2])/1000 if is_white else int(line_splitted[4])/1000
+                if len(line_splitted) >= 5:
+                    time_left_sec = int(line_splitted[2])/1000 if is_white else int(line_splitted[4])/1000
+                else:
+                    time_left_sec = 99999999
                 best_move, best_move_val, use_hard_coded = get_best_move(board, previous_uci_move, is_white, time_left_sec, turn, use_hard_coded)
                 best_move_uci = best_move if use_hard_coded else move_to_uci_move(best_move)
                 print('bestmove ' + best_move_uci, flush=True)
                 do_uci_move(best_move_uci, board, is_white)
-                is_white = not is_white
                 turn += 1
 
 
