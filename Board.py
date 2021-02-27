@@ -78,12 +78,12 @@ class Board:
     def add_pawn_promotion_moves(self, row, col, promotion_row, is_white, moves):
         if self.board[promotion_row][col] == 0:
             for piece_val in possible_promotions[is_white]:
-                moves["promotion"].append(Promotion(row, col, promotion_row, col, self.board[row][col], piece_val, is_white))
+                moves["promotion"].append(Promotion(row, col, promotion_row, col, piece_val, is_white))
         for promotion_col in (col - 1, col + 1):
             if is_enemy[is_white](self.board[promotion_row][promotion_col]):
                 to_piece = self.board[promotion_row][promotion_col]
                 for piece_val in possible_promotions[is_white]:
-                    moves["promotion"].append(Promotion(row, col, promotion_row, promotion_col, self.board[row][col], piece_val, is_white, to_piece))
+                    moves["promotion"].append(Promotion(row, col, promotion_row, promotion_col, piece_val, is_white, to_piece))
 
     def add_en_passant(self, enemy_move_performed, moves, is_white):
         (col_1, row_1, col_2, row_2) = enemy_move_performed

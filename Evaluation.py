@@ -5,7 +5,7 @@ R = 500
 Q = 900
 K = 20000
 
-piece_value_to_piece_score = {0: 0, 1: P, 2: R, 3: N, 4: B, 5: Q, 6: K, -1: -P, -2: -R, -3: -N, -4: -B, -5: -Q, -6: -K}
+piece_value_to_piece_score = {1: P, 2: R, 3: N, 4: B, 5: Q, 6: K, -1: -P, -2: -R, -3: -N, -4: -B, -5: -Q, -6: -K}
 
 pawn_placement_score_white = \
 [[-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],

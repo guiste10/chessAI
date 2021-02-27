@@ -141,18 +141,23 @@ class EnPassant(Move):
 
 
 class Promotion(Move):
-    def __init__(self, row_1, col_1, row_2, col_2, original_piece, promotion_piece, is_white, to_piece=Pieces.OO):
+    def __init__(self, row_1, col_1, row_2, col_2, promotion_piece, is_white, to_piece=Pieces.OO):
         super().__init__(row_1, col_1, row_2, col_2, is_white)
-        self.original_piece = original_piece
         self.promotion_piece = promotion_piece
         self.to_piece = to_piece  # promotion while capturing
 
     def do_move(self, board):
-        self.update_hash(board, promotion_color_to_value[('p', self.is_white)])
+        self.update_hash(board, board.board[self.row_1][self.col_1])
         board.board[self.row_2][self.col_2] = self.promotion_piece
         board.board[self.row_1][self.col_1] = Pieces.OO
 
     def undo_move(self, board):
-        self.update_hash(board, promotion_color_to_value[('p', self.is_white)])
-        board.board[self.row_1][self.col_1] = self.original_piece
+        original_pawn_val = promotion_color_to_value[('p', self.is_white)]
+        self.update_hash(board, original_pawn_val)
+        board.board[self.row_1][self.col_1] = original_pawn_val
         board.board[self.row_2][self.col_2] = self.to_piece
+
+    def update_hash(self, board, original_pawn_val):
+        board.current_hash ^= Zob.side_hash[self.is_white] ^ Zob.piece_hash_for_squares[original_pawn_val][self.row_1][self.col_1] ^ Zob.piece_hash_for_squares[self.promotion_piece][self.row_2][self.col_2]
+        if self.to_piece != Pieces.OO:
+            board.current_hash ^= Zob.piece_hash_for_squares[self.to_piece][self.row_2][self.col_2]

@@ -32,33 +32,29 @@ def play_uci():
             quit_now = True
         else:
             line_splitted = line.split()
-            if line_splitted[0] == 'position' and line_splitted[1] == 'startpos':
-                board, previous_uci_move = init_normal_board()
-                is_white = True
-                if len(line_splitted) > 3:
-                    uci_moves = line_splitted[3:]
-                    for uci_move in uci_moves:
-                        do_uci_move(uci_move, board, is_white)
-                        is_white, previous_uci_move = not is_white, uci_move
+            if line_splitted[0] == 'position' and line_splitted[1] == 'startpos' and len(line_splitted) > 2:
+                previous_uci_move = line_splitted[-1]
+                do_uci_move(previous_uci_move, board, is_white)
+                is_white = not is_white
 
             elif line_splitted[0] == 'go':
-                best_move, best_move_val = get_best_move(board, previous_uci_move, is_white)
+                time_left_sec = int(line_splitted[2])/1000 if is_white else int(line_splitted[4])/1000
+                best_move, best_move_val = get_best_move(board, previous_uci_move, is_white, time_left_sec)
                 best_move_uci = move_to_uci_move(best_move)
                 print('bestmove ' + best_move_uci, flush=True)
+                do_uci_move(best_move_uci, board, is_white)
+                is_white = not is_white
 
 
 def debug_position():
     board, previous_uci_move = init_normal_board()
     is_white = True
-    moves = ['d2d4', 'b8c6', 'e2e4', 'e7e5', 'g1e2', 'e5d4', 'e2d4', 'd8e7',
-             'd1d3', 'e7b4', 'c1d2', 'b4b2', 'd4b3', 'f8b4', 'b1c3', 'c6e5',
-             'd3h3', 'g8f6', 'a2a3', 'f6e4', 'c3e4', 'b2c2', 'e4c3', 'c2b3',
-             'a3b4', 'e8g8', 'b4b5', 'e5f3', 'g2f3', 'f8e8', 'c3e2', 'd7d5',
-             'h3g3', 'b3b2', 'a1c1', 'b2b5', 'h1g1']
+    moves = ['a2a4','e7e5','f2f4','e5f4','g2g3','f8d6','a4a5','f4g3','d2d3','g3h2','g1h3',
+             'd8h4','h3f2','d6g3','c1e3','b8c6','h1g1']
     for move in moves:
         do_uci_move(move, board, is_white)
         is_white = not is_white
-    best_move, best_move_val = get_best_move(board, previous_uci_move, is_white)
+    best_move, best_move_val = get_best_move(board, previous_uci_move, is_white, 9999)
     best_move_uci = move_to_uci_move(best_move)
     print('bestmove ' + best_move_uci)
 
@@ -86,7 +82,7 @@ def play_on_console():
             # pr.enable()
             print("\nEngine's Turn:")
             start = time.time()
-            best_move, best_move_val = get_best_move(board, opponents_uci_move, is_engine_white)
+            best_move, best_move_val = get_best_move(board, opponents_uci_move, is_engine_white, 9999)
             # pr.print_stats(sort="cumtime")
             if best_move == 'none':
                 game_over = True
