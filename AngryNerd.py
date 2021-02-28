@@ -61,13 +61,13 @@ def debug_position():
     board, previous_uci_move = init_normal_board()
     last_3_moves = deque(['none', 'none', 'none'], maxlen=3)
     is_white = True
-    moves = ['g1f3','e7e6','g2g3','d7d5','f1g2','g8f6','a2a3','c7c5','e1g1','b8c6','d2d3','b7b6','b1c3','e6e5','c1g5','h7h6','g5f6','g7f6','e2e4','c6e7','c3d5','e7g6','b2b4','c8b7','b4c5','b6c5','d5e3','h6h5','f1e1','h5h4','d1b1','d8d7','f3h4','a8b8','h4g6','h8h7','g6f8','e8f8']
+    moves = ['g1f3','d7d5','g2g3','g8f6','f1g2','c7c6','e1g1','c8g4','d2d3','b8d7','c1g5','h7h6','g5f6','e7f6','h2h3','g4h5','g3g4','h5g6','e2e4','d8b6','f1e1','d5e4','e1e4','g6e4','d1e2','e8c8','c2c4','e4g6','f3h4','f8c5','h4g6','f7g6','d3d4','c5d4','c4c5','b6b2','e2b2','d4b2','b1d2','b2a1','d2e4','c8b8','a2a4','a1e5','g2h1','b7b6','c5b6','d7b6','a4a5','d8d1']
 
-    for move in moves:
-        do_uci_move(move, board, is_white)
+    for uci_move in moves:
+        last_3_moves.append(uci_move)
+        do_uci_move(uci_move, board, is_white)
         is_white = not is_white
-    best_move = play_turn(board, previous_uci_move, is_white, 9999, 50, last_3_moves)
-    best_move_uci = move_to_uci_move(best_move)
+    best_move_uci = play_turn(board, previous_uci_move, is_white, 20, 50, last_3_moves)
     print('bestmove ' + best_move_uci)
 
 
@@ -125,6 +125,6 @@ def print_stats(time_dif, turn):
 
 
 if __name__ == "__main__":
-    #debug_position()
+    debug_position()
     #play_on_console()
-    play_uci()
+    #play_uci()

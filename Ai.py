@@ -55,7 +55,7 @@ def get_hard_coded_opening_move(board, is_white, turn):
 def search_best_move(board, is_engine_white, opponents_uci_move, time_left_sec, last_3_moves):
     moves = board.get_color_moves(is_engine_white, opponents_uci_move)
     if len(moves) == 1:  # move is forced, skip evaluation
-        return moves[0]
+        return move_to_uci_move(moves[0])
     else:
         start, depth_max = time.time(), 1
         best_move = 'no move'
