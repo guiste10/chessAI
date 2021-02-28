@@ -36,9 +36,9 @@ def play_uci():
             quit_now = True
         else:
             line_splitted = line.split()
-            if line_splitted[0] == 'position' and line_splitted[1] == 'startpos' and len(line_splitted) > 2:
+            if line_splitted[0] == 'position' and line_splitted[1] == 'startpos':
                 is_white = True
-                if len(line_splitted) > 3:
+                if len(line_splitted) > 2:
                     uci_moves = line_splitted[3:]
                     for uci_move in uci_moves:
                         last_3_moves.append(uci_move)
@@ -128,4 +128,3 @@ if __name__ == "__main__":
     #debug_position()
     #play_on_console()
     play_uci()
-

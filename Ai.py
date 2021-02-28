@@ -19,8 +19,7 @@ def play_turn(board, opponents_uci_move, is_engine_white, time_left_sec, turn, l
         hard_coded_move = get_hard_coded_opening_move(board, is_engine_white, turn)
         if hard_coded_move != 'stop_using_hardcoded':
             return hard_coded_move
-    best_move = search_best_move(board, is_engine_white, opponents_uci_move, time_left_sec, last_3_moves)
-    return move_to_uci_move(best_move)
+    return search_best_move(board, is_engine_white, opponents_uci_move, time_left_sec, last_3_moves)
 
 
 def get_hard_coded_opening_move(board, is_white, turn):
@@ -93,12 +92,13 @@ def alpha_beta(board, opponents_uci_move, is_white, alpha, beta, depth, depth_ma
         for move in moves:
             uci_move = move_to_uci_move(move)
             if did_enemy_cancel_his_move and equals_inverted_uci(last_3_moves[1], uci_move):  # to avoid stalemate by threefold repetition while winning
-                return 0
-            move.do_move(board)
-            last_3_moves.append(uci_move)
-            _, val = alpha_beta(board, uci_move, not is_white, alpha, beta, depth - 1, depth_max, last_3_moves)
-            last_3_moves.pop()
-            move.undo_move(board)
+                val = 0
+            else:
+                move.do_move(board)
+                last_3_moves.append(uci_move)
+                _, val = alpha_beta(board, uci_move, not is_white, alpha, beta, depth - 1, depth_max, last_3_moves)
+                last_3_moves.pop()
+                move.undo_move(board)
             if val > best_val:
                 best_val, best_move = val, move
             alpha = max(alpha, best_val)
@@ -109,12 +109,13 @@ def alpha_beta(board, opponents_uci_move, is_white, alpha, beta, depth, depth_ma
         for move in moves:
             uci_move = move_to_uci_move(move)
             if did_enemy_cancel_his_move and equals_inverted_uci(last_3_moves[1], uci_move):
-                return 0
-            move.do_move(board)
-            last_3_moves.append(uci_move)
-            _, val = alpha_beta(board, uci_move, not is_white, alpha, beta, depth - 1, depth_max, last_3_moves)
-            last_3_moves.pop()
-            move.undo_move(board)
+                val = 0
+            else:
+                move.do_move(board)
+                last_3_moves.append(uci_move)
+                _, val = alpha_beta(board, uci_move, not is_white, alpha, beta, depth - 1, depth_max, last_3_moves)
+                last_3_moves.pop()
+                move.undo_move(board)
             if val < best_val:
                 best_val, best_move = val, move
             beta = min(beta, best_val)
@@ -124,7 +125,7 @@ def alpha_beta(board, opponents_uci_move, is_white, alpha, beta, depth, depth_ma
     if best_move == NONE and not board.is_king_attacked(is_white):
         best_val = 0  # not + or - max_utility because it is a pat!
     transposition_table[board.current_hash] = (depth, best_val, best_move)
-    return best_move, best_val
+    return move_to_uci_move(best_move), best_val
 
 
 def visit_node():
