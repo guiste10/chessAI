@@ -86,12 +86,12 @@ def alpha_beta(board, opponents_uci_move, is_white, alpha, beta, depth, depth_ma
     if best_move_calculated != NONE:
         moves.insert(0, best_move_calculated)  # search best move found earlier first (+ duplicate move)
     did_enemy_cancel_his_move = equals_inverted_uci(last_3_moves[0], last_3_moves[2])
-    memo_move = last_3_moves[0]
+    memo_move = last_3_moves.popleft()
     if is_white:
         best_val, best_move = -max_utility, NONE
         for move in moves:
             uci_move = move_to_uci_move(move)
-            if did_enemy_cancel_his_move and equals_inverted_uci(last_3_moves[1], uci_move):  # to avoid stalemate by threefold repetition while winning
+            if did_enemy_cancel_his_move and equals_inverted_uci(last_3_moves[0], uci_move):  # to avoid stalemate by threefold repetition while winning
                 val = 0
             else:
                 move.do_move(board)
@@ -108,7 +108,7 @@ def alpha_beta(board, opponents_uci_move, is_white, alpha, beta, depth, depth_ma
         best_val, best_move = +max_utility, NONE
         for move in moves:
             uci_move = move_to_uci_move(move)
-            if did_enemy_cancel_his_move and equals_inverted_uci(last_3_moves[1], uci_move):
+            if did_enemy_cancel_his_move and equals_inverted_uci(last_3_moves[0], uci_move):
                 val = 0
             else:
                 move.do_move(board)

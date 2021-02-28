@@ -61,8 +61,7 @@ def debug_position():
     board, previous_uci_move = init_normal_board()
     last_3_moves = deque(['none', 'none', 'none'], maxlen=3)
     is_white = True
-    moves = ['g1f3','d7d5','g2g3','g8f6','f1g2','c7c6','e1g1','c8g4','d2d3','b8d7','c1g5','h7h6','g5f6','e7f6','h2h3','g4h5','g3g4','h5g6','e2e4','d8b6','f1e1','d5e4','e1e4','g6e4','d1e2','e8c8','c2c4','e4g6','f3h4','f8c5','h4g6','f7g6','d3d4','c5d4','c4c5','b6b2','e2b2','d4b2','b1d2','b2a1','d2e4','c8b8','a2a4','a1e5','g2h1','b7b6','c5b6','d7b6','a4a5','d8d1']
-
+    moves = ['d2d4','g7g6','c2c4','f8g7','g1f3','g8f6','e2e3','e8g8','b1c3','d7d6','f1d3','e7e5','e1g1','e5d4','e3d4','h7h6','b2b3','b8c6','c1b2','c8f5','d3f5','g6f5','f1e1','a8b8','d1d3','d8d7','e1e2','b8d8','a1e1','f5f4','c3e4','f6e4','e2e4','d7g4','h2h3','g4f5','b2c1','d8e8','d3e2','c6d4','f3d4','f5e4','e2e4','e8e4','e1e4','f7f5','e4f4','g7e5','f4h4','e5f6','c1h6','f6h4','h6f8','g8f8','d4f3','h4f6','g1h2','f8g8','g2g3','a7a6','g3g4','f5g4','h3g4','a6a5','g4g5','f6e7','h2g3','g8f7','f3d4','e7g5','f2f4','g5h6','g3g4','f7g8','f4f5','h6e3','d4e6','c7c6','e6d8','b7b5','d8c6','b5c4','b3c4','a5a4','g4h5','g8f7','c6a7','e3a7','h5g4','a7b6','g4f3','f7f6','f3e4','b6c7','e4d5','f6f5','d5c6','c7d8','c6d7','d8f6','d7d6','f6d4','d6d5','d4e3','c4c5','f5f6','c5c6','e3f4','d5c4','f4d6','c4b5','a4a3','b5b6','f6e7','c6c7','e7d7','c7c8q','d7c8','b6b5','c8b8','b5a4','d6c5','a4b5','c5d6','b5a4','d6c5','a4b5']
     for uci_move in moves:
         last_3_moves.append(uci_move)
         do_uci_move(uci_move, board, is_white)
