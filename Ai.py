@@ -66,7 +66,7 @@ def search_best_move(board, is_engine_white, opponents_uci_move, time_left_sec, 
         if best_move == NONE:
             if len(moves) == 0:
                 return NONE
-            return moves[0]
+            return move_to_uci_move(moves[0])
         return best_move
 
 
