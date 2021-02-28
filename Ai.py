@@ -60,7 +60,7 @@ def search_best_move(board, is_engine_white, opponents_uci_move, time_left_sec, 
         start, depth_max = time.time(), 1
         best_move = 'no move'
         maximum_depth = 5 if time_left_sec > 60 else 4
-        while depth_max <= maximum_depth or (time_left_sec > 60 and time.time() - start < 0.7):
+        while depth_max <= maximum_depth or (time_left_sec > 60 and time.time() - start < 0.9) or (time_left_sec > 40 and time.time() - start < 0.7) or (time_left_sec > 20 and time.time() - start < 0.5):
             best_move, _evaluation = alpha_beta(board, opponents_uci_move, is_engine_white, -max_utility, max_utility, depth_max, depth_max, last_3_moves)
             depth_max += 1
         if best_move == NONE:
