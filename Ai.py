@@ -1,40 +1,26 @@
-from move.MoveUtils import move_to_uci_move
-from Pieces import Pieces
+from move.MoveUtils import move_to_uci_move, NONE, equals_inverted_uci
+from Pieces import Pieces, promotion_color_to_value
 import Evaluation
 import time
 
 max_utility = 999999
 count = -1
 transposition_count = -1
+transposition_table = {}  # {hash: (depth, score, best_move, turn)}
+can_use_hard_coded = True
 
 
-def get_best_move(board, opponents_uci_move, is_engine_white, time_left_sec, turn, use_hard_coded):
-    if turn <= 3 and use_hard_coded:
+def play_turn(board, opponents_uci_move, is_engine_white, time_left_sec, turn, last_3_moves):
+    if turn == 10:  # entering middle game
+        Evaluation.piece_value_to_placement_score[promotion_color_to_value[('q', True)]] = Evaluation.queen_placement_score_middle_white
+        Evaluation.piece_value_to_placement_score[promotion_color_to_value[('q', False)]] = Evaluation.queen_placement_score_middle_black
+    global can_use_hard_coded
+    if turn <= 3 and can_use_hard_coded:
         hard_coded_move = get_hard_coded_opening_move(board, is_engine_white, turn)
         if hard_coded_move != 'stop_using_hardcoded':
-            return hard_coded_move, 0, True
-    if time_left_sec < 60:
-        maximum_depth = 4
-    else:
-        maximum_depth = 5
-    best_move = 'no move'
-    best_score = 0
-    transposition_table = {}  # {hash: (depth, score, best_move)}
-    start = time.time()
-    depth_max = 1
-    moves = board.get_color_moves(is_engine_white, opponents_uci_move)
-    if len(moves) == 1:  # move is forced
-        return moves[0], 0, False
-    else:
-        while depth_max <= maximum_depth or (time_left_sec > 60 and time.time() - start < 0.7):
-            best_move, best_score = alpha_beta(board, opponents_uci_move, is_engine_white, -max_utility, max_utility, depth_max, depth_max, transposition_table)
-            depth_max += 1
-        transposition_table.clear()
-        if best_move == 'none':
-            if len(moves) == 0:
-                return 'none', 0, False
-            return moves[0], 0, False
-        return best_move, best_score, False  # False -> no hardcoded moves will be used in the future
+            return hard_coded_move
+    best_move = search_best_move(board, is_engine_white, opponents_uci_move, time_left_sec, last_3_moves)
+    return move_to_uci_move(best_move)
 
 
 def get_hard_coded_opening_move(board, is_white, turn):
@@ -62,31 +48,56 @@ def get_hard_coded_opening_move(board, is_white, turn):
             else:  # black knight is already placed on f6
                 if board.board[5][6] != Pieces.WP and board.board[5][8] != Pieces.WP:
                     return 'f8g7'  # place bishop
+    global can_use_hard_coded
+    can_use_hard_coded = False
     return 'stop_using_hardcoded'
 
 
-def alpha_beta(board, opponents_uci_move, is_engine_white, alpha, beta, depth, depth_max, transposition_table):
-    if board.current_hash in transposition_table:
-        if transposition_table[board.current_hash][0] >= depth:
-            return transposition_table[board.current_hash][2], transposition_table[board.current_hash][1]
-        best_move_calculated = transposition_table[board.current_hash][2]
+def search_best_move(board, is_engine_white, opponents_uci_move, time_left_sec, last_3_moves):
+    moves = board.get_color_moves(is_engine_white, opponents_uci_move)
+    if len(moves) == 1:  # move is forced, skip evaluation
+        return moves[0]
     else:
-        best_move_calculated = 'none'
+        start, depth_max = time.time(), 1
+        best_move = 'no move'
+        maximum_depth = 5 if time_left_sec > 60 else 4
+        while depth_max <= maximum_depth or (time_left_sec > 60 and time.time() - start < 0.7):
+            best_move, _evaluation = alpha_beta(board, opponents_uci_move, is_engine_white, -max_utility, max_utility, depth_max, depth_max, last_3_moves)
+            depth_max += 1
+        if best_move == NONE:
+            if len(moves) == 0:
+                return NONE
+            return moves[0]
+        return best_move
+
+
+def alpha_beta(board, opponents_uci_move, is_white, alpha, beta, depth, depth_max, last_3_moves):
+    if board.current_hash in transposition_table:
+        entry = transposition_table[board.current_hash]
+        if entry[0] >= depth:
+            return entry[2], entry[1]
+        best_move_calculated = entry[2]
+    else:
+        best_move_calculated = NONE
     if depth == 0:
         evaluation = Evaluation.evaluate(board.board)
-        transposition_table[board.current_hash] = (depth, evaluation, 'none')
-        return 'none', evaluation
-    moves = board.get_color_moves(is_engine_white, opponents_uci_move)
-    if len(moves) == 1 and depth == depth_max:  # move is forced
-        return moves[0], 0
-    if best_move_calculated != 'none':
+        transposition_table[board.current_hash] = (depth, evaluation, NONE)
+        return NONE, evaluation
+    moves = board.get_color_moves(is_white, opponents_uci_move)
+    if best_move_calculated != NONE:
         moves.insert(0, best_move_calculated)  # search best move found earlier first (+ duplicate move)
-    if is_engine_white:
-        best_val, best_move = -max_utility, 'none'
+    did_enemy_cancel_his_move = equals_inverted_uci(last_3_moves[0], last_3_moves[2])
+    memo_move = last_3_moves[0]
+    if is_white:
+        best_val, best_move = -max_utility, NONE
         for move in moves:
             uci_move = move_to_uci_move(move)
+            if did_enemy_cancel_his_move and equals_inverted_uci(last_3_moves[1], uci_move):  # to avoid stalemate by threefold repetition while winning
+                return 0
             move.do_move(board)
-            _, val = alpha_beta(board, uci_move, not is_engine_white, alpha, beta, depth - 1, depth_max, transposition_table)
+            last_3_moves.append(uci_move)
+            _, val = alpha_beta(board, uci_move, not is_white, alpha, beta, depth - 1, depth_max, last_3_moves)
+            last_3_moves.pop()
             move.undo_move(board)
             if val > best_val:
                 best_val, best_move = val, move
@@ -94,73 +105,26 @@ def alpha_beta(board, opponents_uci_move, is_engine_white, alpha, beta, depth, d
             if alpha >= beta:
                 break
     else:
-        best_val, best_move = +max_utility, 'none'
+        best_val, best_move = +max_utility, NONE
         for move in moves:
             uci_move = move_to_uci_move(move)
+            if did_enemy_cancel_his_move and equals_inverted_uci(last_3_moves[1], uci_move):
+                return 0
             move.do_move(board)
-            _, val = alpha_beta(board, uci_move, not is_engine_white, alpha, beta, depth - 1, depth_max, transposition_table)
+            last_3_moves.append(uci_move)
+            _, val = alpha_beta(board, uci_move, not is_white, alpha, beta, depth - 1, depth_max, last_3_moves)
+            last_3_moves.pop()
             move.undo_move(board)
             if val < best_val:
                 best_val, best_move = val, move
             beta = min(beta, best_val)
             if beta <= alpha:
                 break
-    if best_move == 'none' and not board.is_king_attacked(is_engine_white):
+    last_3_moves.appendleft(memo_move)
+    if best_move == NONE and not board.is_king_attacked(is_white):
         best_val = 0  # not + or - max_utility because it is a pat!
     transposition_table[board.current_hash] = (depth, best_val, best_move)
     return best_move, best_val
-
-
-# for debugging
-def alpha_beta_debug(board, opponents_uci_move, is_engine_white, alpha, beta, depth, depth_max, transposition_table):
-    node_id = visit_node()
-    best_id = 0
-    if board.current_hash in transposition_table:
-        if transposition_table[board.current_hash][0] >= depth:
-            #use_transposition_table()
-            return transposition_table[board.current_hash][2], transposition_table[board.current_hash][1], node_id
-        best_move_calculated = transposition_table[board.current_hash][2]
-    else:
-        best_move_calculated = 'none'
-    if depth == 0:
-        # if node_id == 5149:
-        #     print('stop')
-        evaluation = Evaluation.evaluate(board.board)
-        transposition_table[board.current_hash] = (depth, evaluation, 'none')
-        return 'none', evaluation, node_id
-    moves = board.get_color_moves(is_engine_white, opponents_uci_move)
-    if len(moves) == 1 and depth == depth_max:  # move is forced
-        return moves[0], 0, node_id
-    if best_move_calculated != 'none':
-        moves.insert(0, best_move_calculated)  # search best move found earlier first (+ duplicate move)
-    if is_engine_white:
-        best_val, best_move = -max_utility, 'none'
-        for move in moves:
-            uci_move = move_to_uci_move(move)
-            move.do_move(board)
-            _, val, id_found = alpha_beta_debug(board, uci_move, not is_engine_white, alpha, beta, depth - 1, depth_max, transposition_table)
-            move.undo_move(board)
-            if val > best_val:
-                best_val, best_move, best_id = val, move, id_found
-            alpha = max(alpha, best_val)
-            if alpha >= beta:
-                break
-    else:
-        best_val, best_move = +max_utility, 'none'
-        for move in moves:
-            uci_move = move_to_uci_move(move)
-            move.do_move(board)
-            _, val, id_found = alpha_beta_debug(board, uci_move, not is_engine_white, alpha, beta, depth - 1, depth_max, transposition_table)
-            move.undo_move(board)
-            if val < best_val:
-                best_val, best_move, best_id = val, move, id_found
-            beta = min(beta, best_val)
-            if beta <= alpha:
-                break
-    if best_move == 'none' and not board.is_king_attacked(is_engine_white):
-        best_val = 0  # not + or - max_utility because it is a pat!
-    transposition_table[board.current_hash] = (depth, best_val, best_move)
-    return best_move, best_val, best_id
 
 
 def visit_node():

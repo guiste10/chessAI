@@ -217,14 +217,6 @@ class Board:
         row_2, col_2 = move.row_2, move.col_2
         diff_2 = (king_row - row_2, king_col - col_2)
         if abs(king_row - row_2) == abs(king_col - col_2):  # bishop direction
-            # if diff_2[0] == 0:
-            #     import logging
-            #     from pathlib import Path
-            #     Path("venv/logs").mkdir(parents=True, exist_ok=True)
-            #     logging.basicConfig(filename='venv/logs/uci.log', level=logging.DEBUG)
-            #     logging.debug('ERROR Divider 0')
-            #     logging.debug(str(row_1) + ' ' + str(col_1) + ' ' + str(row_2) + ' ' +str(row_2))
-            #     logging.debug(str(self.board))
             direction_2 = get_direction(diff_2, abs(diff_2[0]))
         elif king_row == row_2 or king_col == col_2:  # rook direction
             direction_2 = get_direction(diff_2, max(abs(diff_2[0]), abs(diff_2[1])))

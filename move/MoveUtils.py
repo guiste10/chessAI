@@ -5,6 +5,8 @@ uci_to_col_dict = {'a': 2, 'b': 3, 'c': 4, 'd': 5, 'e': 6, 'f': 7, 'g': 8, 'h': 
 row_to_uci_dict = {2: '8', 3: '7', 4: '6', 5: '5', 6: '4', 7: '3', 8: '2', 9: '1', }
 uci_to_row_dict = {'8': 2, '7': 3, '6': 4, '5': 5, '4': 6, '3': 7, '2': 8, '1': 9}
 
+NONE = 'none'
+
 
 def castle_queenside(board, row_1, col_1):
     board[row_1][col_1 - 2] = board[row_1][col_1]
@@ -49,8 +51,14 @@ def do_uci_move(uci_move, board, is_white):
         if (row_1, col_1) in rook_start_pos[is_white]:
             board.rook_moved[(row_1, col_1)] = True
 
+def equals_inverted_uci(move_1, move_2):
+    if move_1 == NONE or len(move_1) != 4 or len(move_2) != 4:
+        return False
+    return move_1[2:] + move_1[:2] == move_2
 
 def move_to_uci_move(move):
+    if move == 'none':
+        return 'none'
     if move.__class__.__name__ == 'Castle':
         row_1, col_1 = king_start_pos[move.is_white]
         row_2, col_2 = (row_1, col_1 + 2) if move.kingside else (row_1, col_1 - 2)

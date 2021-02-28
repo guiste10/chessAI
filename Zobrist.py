@@ -1,6 +1,12 @@
 from numpy.random import randint
 from numpy import int64
 
+def init_hash(board):
+    hash_val = 0
+    for row in range(2, 10):
+        for col in range(2, 10):
+            hash_val ^= piece_hash_for_squares[board[row][col]][row][col]
+    return hash_val
 
 def rand_int_64():
     return randint(2147483647, 9223372036854775807, dtype=int64)
@@ -15,18 +21,3 @@ file_hash = {col:rand_int_64() for col in range(2, 10)}
 
 # castling rights change because king, qRook or kRook at column 'col' moves for white or black
 castling_rights_hash = {color:{king_side:rand_int_64() for king_side in (True, False)} for color in (True, False)}
-
-# a = rand_int_64()
-# b = rand_int_64()
-# c = a ^ b
-# print(a)
-# a = c ^ b
-# print(a)
-
-
-def init_hash(board):
-    hash_val = 0
-    for row in range(2, 10):
-        for col in range(2, 10):
-            hash_val ^= piece_hash_for_squares[board[row][col]][row][col]
-    return hash_val

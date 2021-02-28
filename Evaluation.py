@@ -120,7 +120,35 @@ rook_placement_score_black = \
 [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
 [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1]]
 
-queen_placement_score_white = \
+queen_placement_score_opening_white = \
+[[-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+[-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+[-1, -1, 0,  0,  0,  0,  0,  0,  0, 0, -1, -1],
+[-1, -1, 0,  0,  0,  0,  0,  0,  0, 0, -1, -1],
+[-1, -1, 0,  0,  0,  0,  0,  0,  0, 0, -1, -1],
+[-1, -1, 0,  0,  0,  0,  0,  0,  0, 0, -1, -1],
+[-1, -1, 0,  0,  0,  0,  0,  0,  0, 0, -1, -1],
+[-1, -1, 0,  0,  0,  0,  0,  0,  0, 0, -1, -1],
+[-1, -1, 0,  0,  20,  0,  10,  0,  0, 0, -1, -1],
+[-1, -1, 0,  0,  0,  30,  0,  0,  0, 0, -1, -1],
+[-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+[-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1]]
+
+queen_placement_score_opening_black = \
+[[-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+[-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+[-1, -1, 0,  0,  0,  -30,  0,  0,  0, 0, -1, -1],
+[-1, -1, 0,  0,  -20,  0,  -10,  0,  0, 0, -1, -1],
+[-1, -1, 0,  0,  0,  0,  0,  0,  0, 0, -1, -1],
+[-1, -1, 0,  0,  0,  0,  0,  0,  0, 0, -1, -1],
+[-1, -1, 0,  0,  0,  0,  0,  0,  0, 0, -1, -1],
+[-1, -1, 0,  0,  0,  0,  0,  0,  0, 0, -1, -1],
+[-1, -1, 0,  0,  0,  0,  0,  0,  0, 0, -1, -1],
+[-1, -1, 0,  0,  0,  0,  0,  0,  0, 0, -1, -1],
+[-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+[-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1]]
+
+queen_placement_score_middle_white = \
 [[-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
 [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
 [-1, -1, -20,-10,-10, -5, -5,-10,-10,-20, -1, -1],
@@ -134,7 +162,7 @@ queen_placement_score_white = \
 [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
 [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1]]
 
-queen_placement_score_black = \
+queen_placement_score_middle_black = \
 [[-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
 [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
 [-1, -1, 20,10,10, 0, 5,10,10,20, -1, -1],
@@ -180,13 +208,13 @@ piece_value_to_placement_score = {1: pawn_placement_score_white,
                                   2: rook_placement_score_white,
                                   3: knight_placement_score_white,
                                   4: bishop_placement_score_white,
-                                  5: queen_placement_score_white,
+                                  5: queen_placement_score_opening_white,
                                   6: king_placement_score_middle_game_white,
                                   -1: pawn_placement_score_black,
                                   -2: rook_placement_score_black,
                                   -3: knight_placement_score_black,
                                   -4: bishop_placement_score_black,
-                                  -5: queen_placement_score_black,
+                                  -5: queen_placement_score_opening_black,
                                   -6: king_placement_score_middle_game_black}
 
 
