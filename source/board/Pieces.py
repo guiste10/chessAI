@@ -17,6 +17,8 @@ class Pieces:
 
 start_row_black = 2
 start_row_white = 9
+pawn_row_white = 8
+pawn_row_black = 3
 queen_rook_start_col = 2
 king_start_col = 6
 king_rook_start_col = 9

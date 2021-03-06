@@ -1,7 +1,6 @@
 from unittest import TestCase
-from Board import Board
-from BoardPositions import init_normal_board, init_no_attack_board, init_attack_board, en_passant_board_black, en_passant_board_white
-from move.MoveUtils import print_moves
+from board.BoardState import BoardState
+from board.BoardPositions import init_normal_board, init_no_attack_board, init_attack_board, en_passant_board_black, en_passant_board_white
 
 
 # print_moves(black_moves)
@@ -9,36 +8,36 @@ from move.MoveUtils import print_moves
 class TestMoveGeneration(TestCase):
     def test_get_color_moves_1(self):
         board, enemy_move = init_normal_board()
-        white_moves = board.get_color_moves(True, 'a1a1')
-        black_moves = board.get_color_moves(False, 'a1a1')
+        white_moves = board.get_all_moves(True, 'a1a1')
+        black_moves = board.get_all_moves(False, 'a1a1')
         self.assertEqual(20, len(white_moves))
         self.assertEqual(20, len(black_moves))
 
     def test_get_color_moves_2(self):
         board, enemy_move = init_no_attack_board()
-        white_moves = board.get_color_moves(True, 'a1a1')
-        black_moves = board.get_color_moves(False, 'a1a1')
+        white_moves = board.get_all_moves(True, 'a1a1')
+        black_moves = board.get_all_moves(False, 'a1a1')
         self.assertEqual(29, len(white_moves))
         self.assertEqual(29, len(black_moves))
 
     def test_get_color_moves_3(self):
         board, enemy_move = init_attack_board()
-        white_moves = board.get_color_moves(True, 'a1a1')
-        black_moves = board.get_color_moves(False, 'a1a1')
+        white_moves = board.get_all_moves(True, 'a1a1')
+        black_moves = board.get_all_moves(False, 'a1a1')
         self.assertEqual(41, len(white_moves))
         self.assertEqual(43, len(black_moves))
 
 
     def test_get_color_moves_4(self):
-        board = Board(en_passant_board_white)
+        board = BoardState(en_passant_board_white)
         board.cannot_castle[True] = True  # white's king castled or moved
         board.cannot_castle[False] = True  # black's king castled or moved
-        white_moves = board.get_color_moves(True, 'b7b5')
+        white_moves = board.get_all_moves(True, 'b7b5')
         self.assertEqual(5, len(white_moves))
-        board = Board(en_passant_board_black)
+        board = BoardState(en_passant_board_black)
         board.cannot_castle[True] = True  # white's king castled or moved
         board.cannot_castle[False] = True  # black's king castled or moved
-        black_moves = board.get_color_moves(False, 'a2a4')
+        black_moves = board.get_all_moves(False, 'a2a4')
         self.assertEqual(5, len(black_moves))
 
     def test_is_attacked_for_white(self):

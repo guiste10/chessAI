@@ -1,6 +1,6 @@
-from Pieces import Pieces, king_start_pos, value_to_piece_short, promotion_color_to_value, king_start_col, queen_rook_start_col, king_rook_start_col
+from board.Pieces import Pieces, king_start_pos, value_to_piece_short, promotion_color_to_value, king_start_col, king_rook_start_col
 from move.MoveUtils import castle_kingside, castle_queenside
-import Zobrist as Zob
+from move import Zobrist as Zob
 
 
 class Move:

@@ -1,7 +1,7 @@
-from BoardPositions import init_normal_board, init_attack_board
-from move.MoveUtils import do_uci_move, move_to_uci_move
-import Ai
-from Ai import play_turn, visit_node, transposition_table, use_transposition_table
+from board.BoardPositions import init_normal_board, init_attack_board
+from move.MoveUtils import do_uci_move
+from ai import Search
+from ai.Search import play_turn, visit_node, transposition_table, use_transposition_table
 import time
 from collections import deque
 
@@ -15,7 +15,7 @@ def play_uci():
     logging.basicConfig(filename='venv/logs/uci.log', level=logging.DEBUG)
     logging.debug('engine started executing')
     board, previous_uci_move = init_normal_board()
-    is_white, Ai.can_use_hard_coded, turn = True, True, 1
+    is_white, Search.can_use_hard_coded, turn = True, True, 1
     quit_now = False
     last_3_moves = deque(['none', 'none', 'none'], maxlen=3)
     while not quit_now:
@@ -28,7 +28,7 @@ def play_uci():
             print('uciok', flush=True)
         elif line == 'ucinewgame':
             board, previous_uci_move = init_normal_board()
-            Ai.can_use_hard_coded, turn = True, 1
+            Search.can_use_hard_coded, turn = True, 1
             last_3_moves = deque(['none', 'none', 'none'], maxlen=3)
         elif line == 'isready':
             print('readyok', flush=True)
@@ -71,11 +71,10 @@ def debug_position():
 
 
 def play_on_console():
-    turn, Ai.can_use_hard_coded = 1, False
     last_3_moves = deque(['none', 'none', 'none'], maxlen=3)
     print("Engine started", "\n")
-    #board, opponents_uci_move = init_normal_board()
-    board, opponents_uci_move = init_attack_board()
+    #turn, (board, opponents_uci_move) = 1, init_normal_board()
+    turn, (board, opponents_uci_move), Search.can_use_hard_coded = 4, init_attack_board(), False
     print(board)
     if input("Is the engine white?: y/n ") == 'y':
         is_engine_white = True
@@ -91,14 +90,10 @@ def play_on_console():
             last_3_moves.append(opponents_uci_move)
             do_uci_move(opponents_uci_move, board, not is_engine_white)
         else:
-            # import cProfile
-            # pr = cProfile.Profile()
-            # pr.enable()
             print("\nEngine's Turn:")
             start = time.time()
             best_move_uci = play_turn(board, opponents_uci_move, is_engine_white, 9999, turn, last_3_moves)
             last_3_moves.append(best_move_uci)
-            # pr.print_stats(sort="cumtime")
             if best_move_uci == 'none':
                 game_over = True
                 if board.is_king_attacked(is_engine_white):
