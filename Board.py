@@ -62,12 +62,12 @@ class Board:
 
     def add_pawn_moves(self, row, col, is_white, moves, enemy_move_row, enemy_move_col):
         target_row = (row - 1, row - 2, 8, 2) if is_white else (row + 1, row + 2, 3, 9)  # next row, row after next row, start row, promoted row
-        if row == target_row[2] and self.board[target_row[0]][col] == 0 and self.board[target_row[1]][col] == 0:
+        if row == target_row[2] and self.board[target_row[0]][col] == Pieces.OO and self.board[target_row[1]][col] == Pieces.OO:
             moves["move"].append(Move(row, col, target_row[1], col, is_white))
         if target_row[0] == target_row[3]:  # promotion on next row
             self.add_pawn_promotion_moves(row, col, target_row[0], is_white, moves)
         else:
-            if self.board[target_row[0]][col] == 0:
+            if self.board[target_row[0]][col] == Pieces.OO:
                 moves["move"].append(Move(row, col, target_row[0], col, is_white))
             for capture_col in (col - 1, col + 1):
                 if is_enemy[is_white](self.board[target_row[0]][capture_col]):
@@ -76,7 +76,7 @@ class Board:
                     add_to_captures(enemy_move_row, enemy_move_col, move, moves, target_row[0], capture_col)
 
     def add_pawn_promotion_moves(self, row, col, promotion_row, is_white, moves):
-        if self.board[promotion_row][col] == 0:
+        if self.board[promotion_row][col] == Pieces.OO:
             for piece_val in possible_promotions[is_white]:
                 moves["promotion"].append(Promotion(row, col, promotion_row, col, piece_val, is_white))
         for promotion_col in (col - 1, col + 1):
@@ -107,7 +107,7 @@ class Board:
     def add_directed_moves(self, row, col, directions, is_white, moves, enemy_move_row, enemy_move_col, move_class, move_storage_name):
         for direction in directions:
             to_row, to_col = row + direction[0], col + direction[1]
-            while self.board[to_row][to_col] == 0:
+            while self.board[to_row][to_col] == Pieces.OO:
                 moves[move_storage_name].append(Move(row, col, to_row, to_col, is_white, 0))
                 to_row, to_col = to_row + direction[0], to_col + direction[1]
             if is_enemy[is_white](self.board[to_row][to_col]):
@@ -145,10 +145,10 @@ class Board:
             moves["castle"].append(Castle(False, is_white))
 
     def safe_to_castle_kingside(self, row, col, is_white):
-        return self.board[row][col + 1] == 0 and self.board[row][col + 2] == 0 and not self.is_square_attacked(row, col + 1, is_white) and not self.is_square_attacked(row, col + 2, is_white)
+        return self.board[row][col + 1] == Pieces.OO and self.board[row][col + 2] == Pieces.OO and not self.is_square_attacked(row, col + 1, is_white) and not self.is_square_attacked(row, col + 2, is_white)
 
     def safe_to_castle_queenside(self, row, col, is_white):
-        return self.board[row][col - 1] == 0 and self.board[row][col - 2] == 0 and self.board[row][col - 3] == 0 and \
+        return self.board[row][col - 1] == Pieces.OO and self.board[row][col - 2] == Pieces.OO and self.board[row][col - 3] == Pieces.OO and \
                not self.is_square_attacked(row, col - 1, is_white) and not self.is_square_attacked(row, col - 2, is_white)
 
     def is_king_attacked(self, is_white):
@@ -201,7 +201,7 @@ class Board:
         return not self.is_king_attacked_after_move(is_white, move)  # see if king still attacked after move that can protect king
 
     def protect_king_from_target(self, direction, row_2, col_2, target_values):
-        while self.board[row_2][col_2] == 0:
+        while self.board[row_2][col_2] == Pieces.OO:
             row_2, col_2 = row_2 + direction[0], col_2 + direction[1]
         return self.board[row_2][col_2] in target_values
 
@@ -254,6 +254,6 @@ class Board:
 
     def advance_when_empty(self, row, col, direction):
         to_row, to_col = row + direction[0], col + direction[1]
-        while self.board[to_row][to_col] == 0:
+        while self.board[to_row][to_col] == Pieces.OO:
             to_row, to_col = to_row + direction[0], to_col + direction[1]
         return to_col, to_row

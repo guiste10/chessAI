@@ -125,5 +125,5 @@ def print_stats(time_dif, turn):
 
 if __name__ == "__main__":
     #debug_position()
-    #play_on_console()
-    play_uci()
+    play_on_console()
+    #play_uci()
