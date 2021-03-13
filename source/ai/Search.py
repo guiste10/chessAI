@@ -58,10 +58,10 @@ def search_best_move(board, is_engine_white, opponents_uci_move, time_left_sec, 
         return move_to_uci_move(moves[0])
     else:
         start, depth_max = time.time(), 1
-        best_move = 'no move'
+        best_move, best_eval = 'no move', 0
         maximum_depth = 5 if time_left_sec > 60 else 4
-        while depth_max <= maximum_depth or (time_left_sec > 60 and time.time() - start < 0.9) or (time_left_sec > 40 and time.time() - start < 0.7) or (time_left_sec > 20 and time.time() - start < 0.5):
-            best_move, _eval = alpha_beta(board, opponents_uci_move, is_engine_white, -max_utility, max_utility, depth_max, depth_max, last_3_moves, evaluate(board.board))
+        while is_time_left_ok(depth_max, maximum_depth, time_left_sec, start) and abs(best_eval) != max_utility:
+            best_move, best_eval = alpha_beta(board, opponents_uci_move, is_engine_white, -max_utility, max_utility, depth_max, depth_max, last_3_moves, evaluate(board.board))
             depth_max += 1
         if best_move == NONE:
             if len(moves) == 0:
@@ -69,9 +69,12 @@ def search_best_move(board, is_engine_white, opponents_uci_move, time_left_sec, 
             return move_to_uci_move(moves[0])
         return best_move
 
+def is_time_left_ok(depth_max, maximum_depth, time_left_sec, start):
+    return depth_max <= maximum_depth or (time_left_sec > 60 and time.time() - start < 0.9) or (time_left_sec > 40 and time.time() - start < 0.7) or (time_left_sec > 20 and time.time() - start < 0.5)
+
 
 def alpha_beta(board, opponents_uci_move, is_white, alpha, beta, depth, depth_max, last_4_moves, current_eval):
-    if equals_inverted_uci(last_4_moves[0], last_4_moves[2]) and equals_inverted_uci(last_4_moves[1], last_4_moves[3]) and depth < depth_max:  # to avoid stalemate by threefold repetition while winning
+    if equals_inverted_uci(last_4_moves[0], last_4_moves[2]) and equals_inverted_uci(last_4_moves[1], last_4_moves[3]):  # to try to avoid stalemate by threefold repetition while winning
         return NONE, 0
     elif board.current_hash in transposition_table:
         entry = transposition_table[board.current_hash]

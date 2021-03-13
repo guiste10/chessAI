@@ -61,12 +61,14 @@ def debug_position():
     board, previous_uci_move = init_normal_board()
     last_4_moves = deque(['none', 'none', 'none', 'none'], maxlen=4)
     is_white = True
-    moves = ['d2d4','g7g6','c2c4','f8g7','g1f3','g8f6','e2e3','e8g8','b1c3','d7d6','f1d3','e7e5','e1g1','e5d4','e3d4','h7h6','b2b3','b8c6','c1b2','c8f5','d3f5','g6f5','f1e1','a8b8','d1d3','d8d7','e1e2','b8d8','a1e1','f5f4','c3e4','f6e4','e2e4','d7g4','h2h3','g4f5','b2c1','d8e8','d3e2','c6d4','f3d4','f5e4','e2e4','e8e4','e1e4','f7f5','e4f4','g7e5','f4h4','e5f6','c1h6','f6h4','h6f8','g8f8','d4f3','h4f6','g1h2','f8g8','g2g3','a7a6','g3g4','f5g4','h3g4','a6a5','g4g5','f6e7','h2g3','g8f7','f3d4','e7g5','f2f4','g5h6','g3g4','f7g8','f4f5','h6e3','d4e6','c7c6','e6d8','b7b5','d8c6','b5c4','b3c4','a5a4','g4h5','g8f7','c6a7','e3a7','h5g4','a7b6','g4f3','f7f6','f3e4','b6c7','e4d5','f6f5','d5c6','c7d8','c6d7','d8f6','d7d6','f6d4','d6d5','d4e3','c4c5','f5f6','c5c6','e3f4','d5c4','f4d6','c4b5','a4a3','b5b6','f6e7','c6c7','e7d7','c7c8q','d7c8','b6b5','c8b8','b5a4','d6c5','a4b5','c5d6','b5a4','d6c5','a4b5']
+    moves = ['e2e3', 'g7g6', 'g1f3', 'f8g7', 'b1c3', 'g8f6', 'e3e4', 'b7b5', 'f1b5']
     for uci_move in moves:
         last_4_moves.append(uci_move)
         do_uci_move(uci_move, board, is_white)
         is_white = not is_white
-    best_move_uci = play_turn(board, previous_uci_move, is_white, 20, 50, last_4_moves)
+    start = time.time()
+    best_move_uci = play_turn(board, previous_uci_move, is_white, 200, 50, last_4_moves)
+    print('time taken: ' + str(time.time() - start))
     print('bestmove ' + best_move_uci)
 
 

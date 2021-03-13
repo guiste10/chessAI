@@ -3,7 +3,7 @@ from board.Pieces import value_to_descriptor, value_to_piece_img, value_to_piece
     start_row_white, start_row_black, queen_rook_start_col, king_rook_start_col, pawn_row_white, pawn_row_black
 from move.Zobrist import init_hash
 from move import Moves
-from move.MoveUtils import uci_move_to_move
+from move.MoveUtils import uci_move_to_move, move_to_uci_move
 from move.Moves import Move, EnPassant, Castle, Promotion
 
 is_king_attacked = False
@@ -253,22 +253,9 @@ class BoardState:
         row_1, col_1 = move.row_1, move.col_1
         if abs(king_row - row_1) != abs(king_col - col_1) and king_row != row_1 and king_col != col_1:  # if no chance to leave king exposed
             return True
-        row_2, col_2 = move.row_2, move.col_2
-        diff_2 = (king_row - row_2, king_col - col_2)
-        if abs(king_row - row_2) == abs(king_col - col_2):  # bishop direction
-            direction_2 = get_direction(diff_2, abs(diff_2[0]))
-        elif king_row == row_2 or king_col == col_2:  # rook direction
-            direction_2 = get_direction(diff_2, max(abs(diff_2[0]), abs(diff_2[1])))
-        else:
-            diff_1 = (king_row - row_1, king_col - col_1)
-            direction_1, is_bishop_direction = (get_direction(diff_1, abs(diff_1[0])), True) if abs(king_row - row_1) == abs(king_col - col_1) \
-                else (get_direction(diff_1, max(abs(diff_1[0]), abs(diff_1[1]))), False)
-            return not self.is_king_now_attacked_after_non_king_move(is_white, move, direction_1, king_row, king_col, is_bishop_direction)
-        diff_1 = (king_row - row_1, king_col - col_1)
-        direction_1, is_bishop_direction = (get_direction(diff_1, abs(diff_1[0])), True) if abs(king_row - row_1) == abs(king_col - col_1) \
-            else (get_direction(diff_1, max(abs(diff_1[0]), abs(diff_1[1]))), False)
-        if direction_1 == direction_2:  # if direction stays the same, king will stay unattacked (even if piece was pinned)
-            return True
+        diff_1 = (row_1 - king_row, col_1 - king_col)
+        direction_1, is_bishop_direction = (get_direction(diff_1, abs(diff_1[0])), True) if abs(king_row - row_1) == abs(king_col - col_1) else (
+        get_direction(diff_1, max(abs(diff_1[0]), abs(diff_1[1]))), False)
         return not self.is_king_now_attacked_after_non_king_move(is_white, move, direction_1, king_row, king_col, is_bishop_direction)
 
     def is_king_now_attacked_after_non_king_move(self, is_white, move, direction, king_row, king_col, is_bishop_direction):
