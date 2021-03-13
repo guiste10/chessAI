@@ -6,6 +6,7 @@ from move import Moves
 from move.MoveUtils import uci_move_to_move
 from move.Moves import Move, EnPassant, Castle, Promotion
 
+is_king_attacked = False
 
 def get_direction(diff, divider):
     return diff[0] // divider, diff[1] // divider
@@ -50,6 +51,8 @@ class BoardState:
     def get_all_moves(self, is_white, enemy_uci_move):
         enemy_move = uci_move_to_move(enemy_uci_move)
         pseudo_moves_dict = {"move": [], "move2": [], "capture": [], "recap": [], "en passant": [], "promotion": [], "castle": []}
+        global is_king_attacked
+        is_king_attacked = self.is_king_attacked(is_white)
         for row in range(2, 10):
             for col in range(2, 10):
                 if is_enemy[not is_white](self.board[row][col]):
@@ -134,7 +137,7 @@ class BoardState:
     def add_king_moves(self, row, col, is_white, moves, enemy_move_row, enemy_move_col):
         (move_class_name, move_storage_name) = ('KingMove', 'move2') if self.cannot_castle[is_white] or self.both_rooks_moved(is_white) else ('MoveCastlingRightsChange', 'move')
         self.add_square_moves(row, col, get_king_squares(row, col), is_white, moves, enemy_move_row, enemy_move_col, getattr(Moves, move_class_name), move_storage_name)
-        if not self.cannot_castle[is_white] and not self.is_square_attacked(row, col, is_white):
+        if not self.cannot_castle[is_white] and not is_king_attacked:
             self.add_castling_moves(row, col, is_white, moves)
 
     def both_rooks_moved(self, is_white):
@@ -157,8 +160,7 @@ class BoardState:
                not self.is_square_attacked(row, col - 1, is_white) and not self.is_square_attacked(row, col - 2, is_white)
 
     def is_king_attacked(self, is_white):
-        (king_row, king_col) = self.king_pos[is_white]
-        return self.is_square_attacked(king_row, king_col, is_white)
+        return self.is_square_attacked(self.king_pos[is_white][0], self.king_pos[is_white][1], is_white)
 
     def is_square_attacked(self, row, col, is_white):
         for (directions, piece) in ((bishop_directions, 'b'), (rook_directions, 'r')):
@@ -186,7 +188,6 @@ class BoardState:
     ###############################################################################
 
     def filter_invalid_moves(self, is_white, pseudo_moves):
-        is_king_attacked = self.is_king_attacked(is_white)
         valid_moves = []
         for move in pseudo_moves:
             if move.__class__.__name__ == 'Castle':
@@ -194,17 +195,19 @@ class BoardState:
             elif value_to_piece_short[self.board[move.row_1][move.col_1]] == 'k':
                 if not self.is_king_attacked_after_move(is_white, move):
                     valid_moves.append(move)
-            elif self.non_king_move_leaves_king_safe(move, is_king_attacked, is_white, self.king_pos[is_white][0], self.king_pos[is_white][1]):
+            elif self.non_king_move_leaves_king_safe(move, is_white, self.king_pos[is_white][0], self.king_pos[is_white][1]):
                 valid_moves.append(move)
         return valid_moves
 
     def is_king_attacked_after_move(self, is_white, move):
-        move.do_move(self)
-        is_king_attacked = self.is_king_attacked(is_white)
+        memo_hash = self.current_hash
+        move.do_move(self, 0)
+        is_king_attacked_now = self.is_king_attacked(is_white)
         move.undo_move(self)
-        return is_king_attacked
+        self.current_hash = memo_hash
+        return is_king_attacked_now
 
-    def non_king_move_leaves_king_safe(self, move, is_king_attacked, is_white, king_row, king_col):  # for non king moves only
+    def non_king_move_leaves_king_safe(self, move, is_white, king_row, king_col):  # for non king moves only
         return self.keep_move_king_attacked(is_white, king_col, king_row, move) if is_king_attacked else self.keep_move_king_safe(is_white, king_col, king_row, move)
 
     def keep_move_king_attacked(self, is_white, king_col, king_row, move):
@@ -257,12 +260,27 @@ class BoardState:
         elif king_row == row_2 or king_col == col_2:  # rook direction
             direction_2 = get_direction(diff_2, max(abs(diff_2[0]), abs(diff_2[1])))
         else:
-            return not self.is_king_attacked_after_move(is_white, move)
+            diff_1 = (king_row - row_1, king_col - col_1)
+            direction_1, is_bishop_direction = (get_direction(diff_1, abs(diff_1[0])), True) if abs(king_row - row_1) == abs(king_col - col_1) \
+                else (get_direction(diff_1, max(abs(diff_1[0]), abs(diff_1[1]))), False)
+            return not self.is_king_now_attacked_after_non_king_move(is_white, move, direction_1, king_row, king_col, is_bishop_direction)
         diff_1 = (king_row - row_1, king_col - col_1)
-        if abs(king_row - row_1) == abs(king_col - col_1):  # bishop direction
-            direction_1 = get_direction(diff_1, abs(diff_1[0]))
-        else:  # rook direction
-            direction_1 = get_direction(diff_1, max(abs(diff_1[0]), abs(diff_1[1])))
+        direction_1, is_bishop_direction = (get_direction(diff_1, abs(diff_1[0])), True) if abs(king_row - row_1) == abs(king_col - col_1) \
+            else (get_direction(diff_1, max(abs(diff_1[0]), abs(diff_1[1]))), False)
         if direction_1 == direction_2:  # if direction stays the same, king will stay unattacked (even if piece was pinned)
             return True
-        return not self.is_king_attacked_after_move(is_white, move)
+        return not self.is_king_now_attacked_after_non_king_move(is_white, move, direction_1, king_row, king_col, is_bishop_direction)
+
+    def is_king_now_attacked_after_non_king_move(self, is_white, move, direction, king_row, king_col, is_bishop_direction):
+        targets = ('q', 'b') if is_bishop_direction else ('q', 'r')
+        target_values = [promotion_color_to_value[(target, not is_white)] for target in targets]
+        memo_hash = self.current_hash
+        move.do_move(self, 0)
+        to_col, to_row = self.advance_when_empty(king_row, king_col, direction)
+        if self.board[to_row][to_col] in target_values:
+            move.undo_move(self)
+            self.current_hash = memo_hash
+            return True
+        move.undo_move(self)
+        self.current_hash = memo_hash
+        return False
