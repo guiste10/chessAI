@@ -73,9 +73,11 @@ def is_time_left_ok(depth_max, maximum_depth, time_left_sec, start):
     return depth_max <= maximum_depth or (time_left_sec > 60 and time.time() - start < 0.9) or (time_left_sec > 40 and time.time() - start < 0.7) or (time_left_sec > 20 and time.time() - start < 0.5)
 
 
-def alpha_beta(board, opponents_uci_move, is_white, alpha, beta, depth, depth_max, last_4_moves, current_eval):
-    if equals_inverted_uci(last_4_moves[0], last_4_moves[2]) and equals_inverted_uci(last_4_moves[1], last_4_moves[3]):  # to try to avoid stalemate by threefold repetition while winning
-        return NONE, 0
+def alpha_beta(board, opponents_uci_move, is_white, alpha, beta, depth, depth_max, last_8_moves, current_eval):
+    if equals_inverted_uci(last_8_moves[0], last_8_moves[2]) and equals_inverted_uci(last_8_moves[1], last_8_moves[3]) \
+        and equals_inverted_uci(last_8_moves[2], last_8_moves[4]) and equals_inverted_uci(last_8_moves[3], last_8_moves[5]) \
+        and equals_inverted_uci(last_8_moves[4], last_8_moves[6]) and equals_inverted_uci(last_8_moves[5], last_8_moves[7]):
+        return NONE, 0  # stalemate by threefold repetition
     elif board.current_hash in transposition_table:
         entry = transposition_table[board.current_hash]
         if entry[0] >= depth:
@@ -89,16 +91,16 @@ def alpha_beta(board, opponents_uci_move, is_white, alpha, beta, depth, depth_ma
     moves = board.get_all_moves(is_white, opponents_uci_move)
     if best_move_calculated != NONE:
         moves.insert(0, best_move_calculated)  # search best move found earlier first (+ duplicate move, but no problem because the transposition table is used)
-    memo_move, memo_hash = last_4_moves.popleft(), board.current_hash
+    memo_move, memo_hash = last_8_moves.popleft(), board.current_hash
     if is_white:
         best_val, best_move = -max_utility, NONE
         for move in moves:
             uci_move = move_to_uci_move(move)
-            last_4_moves.append(uci_move)
-            _, val = alpha_beta(board, uci_move, not is_white, alpha, beta, depth - 1, depth_max, last_4_moves, move.do_move(board, current_eval))
+            last_8_moves.append(uci_move)
+            _, val = alpha_beta(board, uci_move, not is_white, alpha, beta, depth - 1, depth_max, last_8_moves, move.do_move(board, current_eval))
             move.undo_move(board)
             board.current_hash = memo_hash
-            last_4_moves.pop()
+            last_8_moves.pop()
             if val > best_val:
                 best_val, best_move = val, move
             alpha = max(alpha, best_val)
@@ -108,17 +110,17 @@ def alpha_beta(board, opponents_uci_move, is_white, alpha, beta, depth, depth_ma
         best_val, best_move = +max_utility, NONE
         for move in moves:
             uci_move = move_to_uci_move(move)
-            last_4_moves.append(uci_move)
-            _, val = alpha_beta(board, uci_move, not is_white, alpha, beta, depth - 1, depth_max, last_4_moves, move.do_move(board, current_eval))
+            last_8_moves.append(uci_move)
+            _, val = alpha_beta(board, uci_move, not is_white, alpha, beta, depth - 1, depth_max, last_8_moves, move.do_move(board, current_eval))
             move.undo_move(board)
             board.current_hash = memo_hash
-            last_4_moves.pop()
+            last_8_moves.pop()
             if val < best_val:
                 best_val, best_move = val, move
             beta = min(beta, best_val)
             if beta <= alpha:
                 break
-    last_4_moves.appendleft(memo_move)
+    last_8_moves.appendleft(memo_move)
     if best_move == NONE and not board.is_king_attacked(is_white):
         best_val = 0  # not + or - max_utility because it is a pat!
     transposition_table[board.current_hash] = (depth, best_val, best_move)
