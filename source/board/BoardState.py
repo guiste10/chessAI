@@ -3,7 +3,7 @@ from board.Pieces import value_to_descriptor, value_to_piece_img, value_to_piece
     start_row_white, start_row_black, queen_rook_start_col, king_rook_start_col, pawn_row_white, pawn_row_black
 from move.Zobrist import init_hash
 from move import Moves
-from move.MoveUtils import uci_move_to_move, move_to_uci_move
+from move.MoveUtils import uci_move_to_move
 from move.Moves import Move, EnPassant, Castle, Promotion
 
 is_king_attacked = False
@@ -188,16 +188,14 @@ class BoardState:
     ###############################################################################
 
     def filter_invalid_moves(self, is_white, pseudo_moves):
-        valid_moves = []
         for move in pseudo_moves:
             if move.__class__.__name__ == 'Castle':
-                valid_moves.append(move)
+                yield move
             elif value_to_piece_short[self.board[move.row_1][move.col_1]] == 'k':
                 if not self.is_king_attacked_after_move(is_white, move):
-                    valid_moves.append(move)
+                    yield move
             elif self.non_king_move_leaves_king_safe(move, is_white, self.king_pos[is_white][0], self.king_pos[is_white][1]):
-                valid_moves.append(move)
-        return valid_moves
+                yield move
 
     def is_king_attacked_after_move(self, is_white, move):
         memo_hash = self.current_hash

@@ -10,22 +10,22 @@ class TestMoveGeneration(TestCase):
         board, enemy_move = init_normal_board()
         white_moves = board.get_all_moves(True, 'a1a1')
         black_moves = board.get_all_moves(False, 'a1a1')
-        self.assertEqual(20, len(white_moves))
-        self.assertEqual(20, len(black_moves))
+        self.assertEqual(20, sum(1 for _ in white_moves))
+        self.assertEqual(20, sum(1 for _ in black_moves))
 
     def test_get_color_moves_2(self):
         board, enemy_move = init_no_attack_board()
         white_moves = board.get_all_moves(True, 'a1a1')
         black_moves = board.get_all_moves(False, 'a1a1')
-        self.assertEqual(29, len(white_moves))
-        self.assertEqual(29, len(black_moves))
+        self.assertEqual(29, sum(1 for _ in white_moves))
+        self.assertEqual(29, sum(1 for _ in black_moves))
 
     def test_get_color_moves_3(self):
         board, enemy_move = init_attack_board()
         white_moves = board.get_all_moves(True, 'a1a1')
         black_moves = board.get_all_moves(False, 'a1a1')
-        self.assertEqual(41, len(white_moves))
-        self.assertEqual(43, len(black_moves))
+        self.assertEqual(41, sum(1 for _ in white_moves))
+        self.assertEqual(43, sum(1 for _ in black_moves))
 
 
     def test_get_color_moves_4(self):
@@ -33,12 +33,12 @@ class TestMoveGeneration(TestCase):
         board.cannot_castle[True] = True  # white's king castled or moved
         board.cannot_castle[False] = True  # black's king castled or moved
         white_moves = board.get_all_moves(True, 'b7b5')
-        self.assertEqual(5, len(white_moves))
+        self.assertEqual(5, sum(1 for _ in white_moves))
         board = BoardState(en_passant_board_black)
         board.cannot_castle[True] = True  # white's king castled or moved
         board.cannot_castle[False] = True  # black's king castled or moved
         black_moves = board.get_all_moves(False, 'a2a4')
-        self.assertEqual(5, len(black_moves))
+        self.assertEqual(5, sum(1 for _ in black_moves))
 
     def test_is_attacked_for_white(self):
         board, enemy_move = init_attack_board()
