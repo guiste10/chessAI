@@ -188,14 +188,16 @@ class BoardState:
     ###############################################################################
 
     def filter_invalid_moves(self, is_white, pseudo_moves):
+        valid_moves = []
         for move in pseudo_moves:
             if move.__class__.__name__ == 'Castle':
-                yield move
+                valid_moves.append(move)
             elif value_to_piece_short[self.board[move.row_1][move.col_1]] == 'k':
                 if not self.is_king_attacked_after_move(is_white, move):
-                    yield move
+                    valid_moves.append(move)
             elif self.non_king_move_leaves_king_safe(move, is_white, self.king_pos[is_white][0], self.king_pos[is_white][1]):
-                yield move
+                valid_moves.append(move)
+        return valid_moves
 
     def is_king_attacked_after_move(self, is_white, move):
         memo_hash = self.current_hash

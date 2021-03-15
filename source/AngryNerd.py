@@ -17,7 +17,6 @@ def play_uci():
     board, previous_uci_move = init_normal_board()
     is_white, Search.can_use_hard_coded, turn = True, True, 1
     quit_now = False
-    last_8_moves = deque(['none', 'none', 'none', 'none','none', 'none', 'none', 'none'], maxlen=8)
     while not quit_now:
         line = input()
         logging.debug(line)
@@ -29,7 +28,6 @@ def play_uci():
         elif line == 'ucinewgame':
             board, previous_uci_move = init_normal_board()
             Search.can_use_hard_coded, turn = True, 1
-            last_8_moves = deque(['none', 'none', 'none', 'none','none', 'none', 'none', 'none'], maxlen=8)
         elif line == 'isready':
             print('readyok', flush=True)
         elif line == 'quit':
@@ -41,7 +39,6 @@ def play_uci():
                 if len(line_splitted) > 2:
                     uci_moves = line_splitted[3:]
                     for uci_move in uci_moves:
-                        last_8_moves.append(uci_move)
                         do_uci_move(uci_move, board, is_white)
                         is_white, previous_uci_move = not is_white, uci_move
 
@@ -50,7 +47,7 @@ def play_uci():
                     time_left_sec = int(line_splitted[2])/1000 if is_white else int(line_splitted[4])/1000
                 else:
                     time_left_sec = 99999999
-                best_move_uci = play_turn(board, previous_uci_move, is_white, time_left_sec, turn, last_8_moves)
+                best_move_uci = play_turn(board, previous_uci_move, is_white, time_left_sec, turn)
                 print('bestmove ' + best_move_uci, flush=True)
                 transposition_table.clear()
                 board, previous_uci_move = init_normal_board()
@@ -59,21 +56,18 @@ def play_uci():
 
 def debug_position():
     board, previous_uci_move = init_normal_board()
-    last_8_moves = deque(['none', 'none', 'none', 'none','none', 'none', 'none', 'none'], maxlen=8)
     is_white = True
-    moves = ['b1c3','g7g6','d2d4','f8g7','e2e4','g8f6','e4e5','e8g8','g1e2','b8c6','e2f4','c6e5','d4e5']
+    moves = ['e2e4','g7g6','d2d3','f8g7','b1c3','g8f6','e4e5','f6g8','g1f3','e8f8','c1e3','b8c6','a2a4','c6e5','f3e5']
     for uci_move in moves:
-        last_8_moves.append(uci_move)
         do_uci_move(uci_move, board, is_white)
         is_white = not is_white
     start = time.time()
-    best_move_uci = play_turn(board, previous_uci_move, is_white, 200, 50, last_8_moves)
-    print('time taken: ' + str(time.time() - start))
+    best_move_uci = play_turn(board, previous_uci_move, is_white, 200, 50)
+    print_stats(time.time() - start, 50)
     print('bestmove ' + best_move_uci)
 
 
 def play_on_console():
-    last_8_moves = deque(['none', 'none', 'none', 'none','none', 'none', 'none', 'none'], maxlen=8)
     print("Engine started", "\n")
     # turn, (board, opponents_uci_move) = 10, init_normal_board()
     turn, (board, opponents_uci_move), Search.can_use_hard_coded = 4, init_attack_board(), False
@@ -89,7 +83,6 @@ def play_on_console():
     while not game_over:
         if n % 2 == 0:
             opponents_uci_move = input("Enter move: ").replace(" ", "")
-            last_8_moves.append(opponents_uci_move)
             do_uci_move(opponents_uci_move, board, not is_engine_white)
         else:
             print("\nEngine's Turn:")
@@ -97,9 +90,8 @@ def play_on_console():
             # pr = cProfile.Profile()
             # pr.enable()
             start = time.time()
-            best_move_uci = play_turn(board, opponents_uci_move, is_engine_white, 9999, turn, last_8_moves)
+            best_move_uci = play_turn(board, opponents_uci_move, is_engine_white, 9999, turn)
             # pr.print_stats(sort="tottime")
-            last_8_moves.append(best_move_uci)
             if best_move_uci == 'none':
                 game_over = True
                 if board.is_king_attacked(is_engine_white):
@@ -118,13 +110,13 @@ def play_on_console():
 
 def print_stats(time_dif, turn):
     if turn > 3:
-        print('Time: ' + str(time_dif))
+        print('\nTime: ' + str(time_dif))
         print('#nodes: ' + str(visit_node()))
         print('#nodes/sec: ' + str(visit_node() // time_dif) + '\n')
-        # print('# transposition table hits: ' + str(use_transposition_table()) + '\n')
+        print('# transposition table hits: ' + str(use_transposition_table()) + '\n')
 
 
 if __name__ == "__main__":
-    #debug_position()
+    debug_position()
     #play_on_console()
-    play_uci()
+    #play_uci()
