@@ -57,14 +57,14 @@ def play_uci():
 def debug_position():
     board, previous_uci_move = init_normal_board()
     is_white = True
-    moves = ['e2e4','g7g6','d2d3','f8g7','b1c3','g8f6','e4e5','f6g8','g1f3','e8f8','c1e3','b8c6','a2a4','c6e5','f3e5']
+    moves = ['d2d4','g7g6','c2c4','f8g7','e2e3','g8f6','b1c3','b8c6','d4d5','c6e5','d1d4','d7d6','b2b3','f6h5','c1b2','e5g4','d4d2','e7e6','d5e6','c8e6','c3d5','g7b2','a1d1','b2g7','h2h3','g4e5','d2a5','e5c6','a5b5','e8g8','g1e2','a8b8','b5a4','f8e8','e2c3','b8c8','a4b5','c8b8','f1e2','d8g5','b5a4','g5g2','e1d2','g7c3','d2c3','e6d5','c4d5','b7b5','a4h4','e8e4','d1g1','g2g1','h4e4','g1f2','e4f3','f2f3','e2f3','c6e7','b3b4','h5g3','h1e1','b8e8','e1g1','g3f5','c3d2','f5h4','f3e4','f7f5','e4g2','h4g2','g1g2','e7d5','a2a3','d5e3','g2g5','e8e4','d2c3','d6d5','c3d3','e3c4','g5g3']
     for uci_move in moves:
         do_uci_move(uci_move, board, is_white)
         is_white = not is_white
     start = time.time()
     best_move_uci = play_turn(board, previous_uci_move, is_white, 200, 50)
-    print_stats(time.time() - start, 50)
-    print('bestmove ' + best_move_uci)
+    print('time taken: ' + str(time.time() - start))
+    #print('bestmove ' + best_move_uci)
 
 
 def play_on_console():
@@ -110,13 +110,13 @@ def play_on_console():
 
 def print_stats(time_dif, turn):
     if turn > 3:
-        print('\nTime: ' + str(time_dif))
+        print('Time: ' + str(time_dif))
         print('#nodes: ' + str(visit_node()))
         print('#nodes/sec: ' + str(visit_node() // time_dif) + '\n')
-        print('# transposition table hits: ' + str(use_transposition_table()) + '\n')
+        # print('# transposition table hits: ' + str(use_transposition_table()) + '\n')
 
 
 if __name__ == "__main__":
-    debug_position()
+    #debug_position()
     #play_on_console()
-    #play_uci()
+    play_uci()

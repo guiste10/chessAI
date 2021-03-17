@@ -10,6 +10,7 @@ count = -1
 transposition_count = -1
 transposition_table = {}  # {hash: (depth, score, best_move)}
 can_use_hard_coded = True
+EXACT, LOWERBOUND, UPPERBOUND = 0, -1, 1
 
 
 def play_turn(board, opponents_uci_move, is_engine_white, time_left_sec, turn):
@@ -22,56 +23,111 @@ def play_turn(board, opponents_uci_move, is_engine_white, time_left_sec, turn):
         if hard_coded_move != 'stop_using_hardcoded':
             return hard_coded_move
     previous_two_evals = deque([0, 0], maxlen=2)
-    return search_best_move(board, is_engine_white, opponents_uci_move, time_left_sec, previous_two_evals, turn)
+    return search_best_move(board, is_engine_white, opponents_uci_move, time_left_sec, previous_two_evals)
 
 
-def search_best_move(board, is_engine_white, opponents_uci_move, time_left_sec, previous_two_evals, turn):
-    moves = board.get_all_moves(is_engine_white, opponents_uci_move)
+def search_best_move(board, is_engine_white, opponents_uci_move, time_left_sec, previous_two_evals):
     start, depth_max, best_move = time.time(), 1, 'no move'
-    #maximum_depth = 6 if time_left_sec > 60 else 5
+    # maximum_depth = 6 if time_left_sec > 60 else 5
     maximum_depth = 5
-    while can_increase_time(depth_max, maximum_depth, time_left_sec, start, turn):
-        previous_two_evals, best_move = aspiration_search(board, depth_max, is_engine_white, opponents_uci_move, previous_two_evals)
-        print("Depth: " + str(depth_max) + " score: " + str(previous_two_evals[-1]))
-        print("Table size: " + str(len(transposition_table)))
-        print("Nodes: " + str(visit_node()))
+    #while can_increase_time(depth_max, maximum_depth, time_left_sec, start, turn) :
+    while depth_max <= maximum_depth:
+        #best_eval, best_move = normal_search(board, depth_max, is_engine_white, opponents_uci_move)
+        best_eval, best_move = mtdf_search(board, depth_max, is_engine_white, opponents_uci_move, previous_two_evals)
+        previous_two_evals.append(best_eval)
+        print("Nodes: " + str(visit_node()) + " table size: " + str(len(transposition_table)))
+        print("Depth " + str(depth_max) + " move: " + move_to_uci_move(best_move) + " score: " + str(previous_two_evals[-1]))
         depth_max += 1
-    if best_move == NONE:
-        print("none")
-        return move_to_uci_move(next(moves))
     return move_to_uci_move(best_move)
 
-def can_increase_time(depth_max, maximum_depth, time_left_sec, start, turn):
-    if depth_max == 8:
-        print(2)
-    return depth_max <= maximum_depth
-    ##return depth_max <= maximum_depth or ((time_left_sec > 60 and time.time() - start < 0.7) or (time_left_sec > 40 and time.time() - start < 0.5) or (time_left_sec > 20 and time.time() - start < 0.4)) and depth_max < 15
+def can_increase_time(depth_max, maximum_depth, time_left_sec, start):
+    return depth_max <= maximum_depth or ((time_left_sec > 60 and time.time() - start < 0.7) or (time_left_sec > 40 and time.time() - start < 0.5) or (time_left_sec > 20 and time.time() - start < 0.4)) and depth_max < 15
 
 
-def aspiration_search1(board, depth_max, is_engine_white, opponents_uci_move, previous_two_evals):
-    delta_left = delta_right = 25
-    previous_eval = previous_two_evals[0]
-    while True:
-        lower_bound, upper_bound = previous_eval - delta_left, previous_eval + delta_right
-        best_eval = alpha_beta(board, opponents_uci_move, is_engine_white, lower_bound, upper_bound, depth_max, evaluate(board.board))
-        best_move = transposition_table[board.current_hash][2]
-        if lower_bound <= best_eval <= upper_bound:
-            break
-        if lower_bound > best_eval:  # fail low
-            delta_left = delta_left * 3
-        else:  # fail high
-            delta_right = delta_right * 3
-    previous_two_evals.append(best_eval)
-    return previous_two_evals, best_move
-
-def aspiration_search(board, depth_max, is_engine_white, opponents_uci_move, previous_two_evals):
+def normal_search(board, depth_max, is_engine_white, opponents_uci_move):
     best_eval = alpha_beta(board, opponents_uci_move, is_engine_white, -max_utility, max_utility, depth_max, evaluate(board.board))
-    previous_two_evals.append(best_eval)
-    best_move = transposition_table[board.current_hash][2]
-    return previous_two_evals, best_move
+    return best_eval, transposition_table[board.current_hash][2]
+
+def mtdf_search(board, depth_max, is_engine_white, opponents_uci_move, previous_two_evals):
+    evaluation, g = evaluate(board.board), previous_two_evals[0]  # two plies ago
+    lower_bound, upper_bound = -max_utility, max_utility
+    while lower_bound < upper_bound:
+        beta = g + 1 if g == lower_bound else g
+        g = alpha_beta_bounds(board, opponents_uci_move, is_engine_white, beta - 1, beta, depth_max, evaluation)
+        if g < beta:
+            upper_bound = g
+        else:
+            lower_bound = g
+    return g, transposition_table[board.current_hash][2]
+
+
+def alpha_beta_bounds(board, opponents_uci_move, is_white, alpha, beta, depth, current_eval):
+    # transposition_table : {K = hash, V = (depth, score, best_move, type)}
+    visit_node()
+    if board.current_hash in transposition_table:
+        entry = transposition_table[board.current_hash]
+        if entry[0] >= depth:
+            entry = transposition_table[board.current_hash]
+            if entry[3] == LOWERBOUND:
+                if entry[1] >= beta:
+                    return entry[1]
+                alpha = max(alpha, entry[1])
+            if entry[3] == UPPERBOUND:
+                if entry[1] <= alpha:
+                    return entry[1]
+                beta = min(beta, entry[1])
+        best_move_calculated = entry[2]
+    else:
+        best_move_calculated = NONE
+    if depth == 0 or current_eval < -20000 or current_eval > 20000:
+        best_move = NONE
+        g = current_eval
+    else:
+        moves = board.get_all_moves(is_white, opponents_uci_move)
+        if best_move_calculated != NONE:
+            moves = itertools.chain([best_move_calculated], moves)
+        if is_white:
+            g, best_move, memo_hash = -max_utility-1, NONE, board.current_hash
+            for move in moves:
+                if g >= beta:
+                    break
+                val = alpha_beta_bounds(board, move_to_uci_move(move), not is_white, alpha, beta, depth - 1, move.do_move(board, current_eval))
+                move.undo_move(board)
+                board.current_hash = memo_hash
+                if val > g:
+                    g, best_move = val, move
+        else:
+            g, best_move, memo_hash = max_utility+1, NONE, board.current_hash
+            for move in moves:
+                if g <= alpha:
+                    break
+                val = alpha_beta_bounds(board, move_to_uci_move(move), not is_white, alpha, beta, depth - 1, move.do_move(board, current_eval))
+                move.undo_move(board)
+                board.current_hash = memo_hash
+                if val < g:
+                    g, best_move = val, move
+    if best_move == NONE and depth > 0 and not board.is_king_attacked(is_white):
+        g = 0  # not + or - max_utility because it is a pat!
+    if g <= alpha:
+        transposition_table[board.current_hash] = (depth, g, best_move, UPPERBOUND)
+    elif g >= beta:
+        transposition_table[board.current_hash] = (depth, g, best_move, LOWERBOUND)
+    return g
+
+
+
+
+
+
+
+
+
+
 
 
 def alpha_beta(board, opponents_uci_move, is_white, alpha, beta, depth, current_eval):
+    # transposition_table : {K = hash, V = (depth, score, best_move)}
+
     visit_node()
     if board.current_hash in transposition_table:
         entry = transposition_table[board.current_hash]
@@ -80,7 +136,7 @@ def alpha_beta(board, opponents_uci_move, is_white, alpha, beta, depth, current_
         best_move_calculated = entry[2]
     else:
         best_move_calculated = NONE
-    if depth == 0 or current_eval < -30000 or current_eval > 30000:
+    if depth == 0 or current_eval < -20000 or current_eval > 20000:
         transposition_table[board.current_hash] = (depth, current_eval, NONE)
         return current_eval
     moves = board.get_all_moves(is_white, opponents_uci_move)
@@ -88,7 +144,7 @@ def alpha_beta(board, opponents_uci_move, is_white, alpha, beta, depth, current_
         moves = itertools.chain([best_move_calculated], moves)
     memo_hash = board.current_hash
     if is_white:
-        best_val, best_move = -max_utility, NONE
+        best_val, best_move = -max_utility-1, NONE
         for move in moves:
             uci_move = move_to_uci_move(move)
             val = alpha_beta(board, uci_move, not is_white, alpha, beta, depth - 1, move.do_move(board, current_eval))
@@ -100,7 +156,7 @@ def alpha_beta(board, opponents_uci_move, is_white, alpha, beta, depth, current_
             if alpha >= beta:
                 break
     else:
-        best_val, best_move = +max_utility, NONE
+        best_val, best_move = max_utility+1, NONE
         for move in moves:
             uci_move = move_to_uci_move(move)
             val = alpha_beta(board, uci_move, not is_white, alpha, beta, depth - 1, move.do_move(board, current_eval))
