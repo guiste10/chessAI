@@ -1,5 +1,7 @@
+import itertools
+
 from board.Pieces import value_to_descriptor, value_to_piece_img, value_to_piece_short, promotion_color_to_value, rook_directions, bishop_directions, queen_directions, is_enemy, get_knight_squares, \
-    get_king_squares, get_attacking_enemy_pawn_squares, rook_start_pos, possible_promotions, start_row, Pieces, king_start_col, \
+    get_king_squares, get_attacking_enemy_pawn_squares, rook_start_pos, start_row, Pieces, king_start_col, \
     start_row_white, start_row_black, queen_rook_start_col, king_rook_start_col, pawn_row_white, pawn_row_black
 from move.Zobrist import init_hash
 from move import Moves
@@ -58,8 +60,8 @@ class BoardState:
                 if is_enemy[not is_white](self.board[row][col]):
                     self.add_piece_moves(row, col, pseudo_moves_dict, enemy_move[3], enemy_move[2], is_white)
         self.add_en_passant(enemy_move, pseudo_moves_dict, is_white)
-        pseudo_moves_sorted_list = [*pseudo_moves_dict["en passant"], *pseudo_moves_dict["recap"], *pseudo_moves_dict["capture"], *pseudo_moves_dict["promotion"], *pseudo_moves_dict["castle"],
-                                    *pseudo_moves_dict["move"], *pseudo_moves_dict["move2"]]
+        pseudo_moves_sorted_list = itertools.chain(pseudo_moves_dict["en passant"], pseudo_moves_dict["recap"], pseudo_moves_dict["capture"],
+                                                   pseudo_moves_dict["promotion"], pseudo_moves_dict["castle"], pseudo_moves_dict["move"], pseudo_moves_dict["move2"])
         return self.filter_invalid_moves(is_white, pseudo_moves_sorted_list)
 
     def add_piece_moves(self, row, col, moves, enemy_move_row, enemy_move_col, is_white):
@@ -85,13 +87,11 @@ class BoardState:
 
     def add_pawn_promotion_moves(self, row, col, promotion_row, is_white, moves):
         if self.board[promotion_row][col] == Pieces.OO:
-            for piece_val in possible_promotions[is_white]:
-                moves["promotion"].append(Promotion(row, col, promotion_row, col, piece_val, is_white))
+            moves["promotion"].append(Promotion(row, col, promotion_row, col, is_white))
         for promotion_col in (col - 1, col + 1):
             if is_enemy[is_white](self.board[promotion_row][promotion_col]):
                 to_piece = self.board[promotion_row][promotion_col]
-                for piece_val in possible_promotions[is_white]:
-                    moves["promotion"].append(Promotion(row, col, promotion_row, promotion_col, piece_val, is_white, to_piece))
+                moves["promotion"].append(Promotion(row, col, promotion_row, promotion_col, is_white, to_piece))
 
     def add_en_passant(self, enemy_move_performed, moves, is_white):
         (col_1, row_1, col_2, row_2) = enemy_move_performed

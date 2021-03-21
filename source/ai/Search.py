@@ -1,6 +1,7 @@
-from move.MoveUtils import move_to_uci_move, NONE, equals_inverted_uci
+from __future__ import print_function
+from move.MoveUtils import move_to_uci_move, NONE
 from board.Pieces import Pieces, promotion_color_to_value
-from ai.Evaluation import piece_value_to_placement_score, queen_placement_score_middle_white, queen_placement_score_middle_black, evaluate
+from Evaluation import piece_value_to_placement_score, queen_placement_score_middle_white, queen_placement_score_middle_black, evaluate
 import time
 from collections import deque
 import itertools
@@ -14,9 +15,9 @@ EXACT, LOWERBOUND, UPPERBOUND = 0, -1, 1
 
 
 def play_turn(board, opponents_uci_move, is_engine_white, time_left_sec, turn):
-    # if turn == 10: to do access turn with board.turn instead  # entering middle game
-    #     piece_value_to_placement_score[promotion_color_to_value[('q', True)]] = queen_placement_score_middle_white
-    #     piece_value_to_placement_score[promotion_color_to_value[('q', False)]] = queen_placement_score_middle_black
+    if turn == 10:  # to do access turn with board.turn instead  # entering middle game
+        piece_value_to_placement_score[promotion_color_to_value[('q', True)]] = queen_placement_score_middle_white
+        piece_value_to_placement_score[promotion_color_to_value[('q', False)]] = queen_placement_score_middle_black
     global can_use_hard_coded
     if turn <= 3 and can_use_hard_coded:
         hard_coded_move = get_hard_coded_opening_move(board, is_engine_white, turn)
@@ -28,25 +29,24 @@ def play_turn(board, opponents_uci_move, is_engine_white, time_left_sec, turn):
 
 def search_best_move(board, is_engine_white, opponents_uci_move, time_left_sec, previous_two_evals):
     start, depth_max, best_move = time.time(), 1, 'no move'
-    # maximum_depth = 6 if time_left_sec > 60 else 5
-    maximum_depth = 5
-    #while can_increase_time(depth_max, maximum_depth, time_left_sec, start, turn) :
-    while depth_max <= maximum_depth:
+    maximum_depth = 6 if time_left_sec > 60 else 5
+    #maximum_depth = 6
+    while can_increase_time(depth_max, maximum_depth, time_left_sec, start) :
+    #while depth_max <= maximum_depth:
         #best_eval, best_move = normal_search(board, depth_max, is_engine_white, opponents_uci_move)
         best_eval, best_move = mtdf_search(board, depth_max, is_engine_white, opponents_uci_move, previous_two_evals)
         previous_two_evals.append(best_eval)
         print("Nodes: " + str(visit_node()) + " table size: " + str(len(transposition_table)))
         print("Depth " + str(depth_max) + " move: " + move_to_uci_move(best_move) + " score: " + str(previous_two_evals[-1]))
         depth_max += 1
+    transposition_table.clear()
+    if best_move == 'none':
+        best_move = board.get_all_moves(is_engine_white, opponents_uci_move)[0]
     return move_to_uci_move(best_move)
 
 def can_increase_time(depth_max, maximum_depth, time_left_sec, start):
-    return depth_max <= maximum_depth or ((time_left_sec > 60 and time.time() - start < 0.7) or (time_left_sec > 40 and time.time() - start < 0.5) or (time_left_sec > 20 and time.time() - start < 0.4)) and depth_max < 15
-
-
-def normal_search(board, depth_max, is_engine_white, opponents_uci_move):
-    best_eval = alpha_beta(board, opponents_uci_move, is_engine_white, -max_utility, max_utility, depth_max, evaluate(board.board))
-    return best_eval, transposition_table[board.current_hash][2]
+    time_elapsed = time.time() - start
+    return depth_max <= maximum_depth or ((time_left_sec > 60 and time_elapsed < 0.7) or (time_left_sec > 40 and time_elapsed < 0.5) or (time_left_sec > 20 and time_elapsed < 0.4)) and depth_max < 15
 
 def mtdf_search(board, depth_max, is_engine_white, opponents_uci_move, previous_two_evals):
     evaluation, g = evaluate(board.board), previous_two_evals[0]  # two plies ago
@@ -67,6 +67,7 @@ def alpha_beta_bounds(board, opponents_uci_move, is_white, alpha, beta, depth, c
     if board.current_hash in transposition_table:
         entry = transposition_table[board.current_hash]
         if entry[0] >= depth:
+            use_transposition_table()
             entry = transposition_table[board.current_hash]
             if entry[3] == LOWERBOUND:
                 if entry[1] >= beta:
@@ -124,6 +125,9 @@ def alpha_beta_bounds(board, opponents_uci_move, is_white, alpha, beta, depth, c
 
 
 
+def normal_search(board, depth_max, is_engine_white, opponents_uci_move):
+    best_eval = alpha_beta(board, opponents_uci_move, is_engine_white, -max_utility, max_utility, depth_max, evaluate(board.board))
+    return best_eval, transposition_table[board.current_hash][2]
 
 def alpha_beta(board, opponents_uci_move, is_white, alpha, beta, depth, current_eval):
     # transposition_table : {K = hash, V = (depth, score, best_move)}

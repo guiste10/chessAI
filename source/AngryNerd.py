@@ -1,35 +1,38 @@
+from __future__ import print_function
 from board.BoardPositions import init_normal_board, init_attack_board
 from move.MoveUtils import do_uci_move
 from ai import Search
 from ai.Search import play_turn, visit_node, transposition_table, use_transposition_table
 import time
-from collections import deque
-
+import sys
 
 import logging
 from pathlib import Path
+import os
 
 
 def play_uci():
-    Path("venv/logs").mkdir(parents=True, exist_ok=True)
-    logging.basicConfig(filename='venv/logs/uci.log', level=logging.DEBUG)
+    directory = 'engine_logs'
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    logging.basicConfig(filename='engine_logs/uci.log', level=logging.DEBUG)
     logging.debug('engine started executing')
     board, previous_uci_move = init_normal_board()
     is_white, Search.can_use_hard_coded, turn = True, True, 1
     quit_now = False
     while not quit_now:
-        line = input()
+        line = raw_input()
         logging.debug(line)
         line = line.rstrip()
         if line == 'uci':
-            print('id name Angry Nerd', flush=True)
-            print('id author Guillaume Neirinckx', flush=True)
-            print('uciok', flush=True)
+            print_f('id name Angry Nerd')
+            print_f('id author Guillaume Neirinckx')
+            print_f('uciok')
         elif line == 'ucinewgame':
             board, previous_uci_move = init_normal_board()
             Search.can_use_hard_coded, turn = True, 1
         elif line == 'isready':
-            print('readyok', flush=True)
+            print_f('readyok')
         elif line == 'quit':
             quit_now = True
         else:
@@ -48,23 +51,32 @@ def play_uci():
                 else:
                     time_left_sec = 99999999
                 best_move_uci = play_turn(board, previous_uci_move, is_white, time_left_sec, turn)
-                print('bestmove ' + best_move_uci, flush=True)
-                transposition_table.clear()
+                print_f('bestmove ' + best_move_uci)
                 board, previous_uci_move = init_normal_board()
                 turn += 1
 
+def print_f(msg):
+    print(msg)
+    sys.stdout.flush()
+
+
 
 def debug_position():
+    import cProfile
+    pr = cProfile.Profile()
+    pr.enable()
     board, previous_uci_move = init_normal_board()
     is_white = True
-    moves = ['d2d4','g7g6','c2c4','f8g7','e2e3','g8f6','b1c3','b8c6','d4d5','c6e5','d1d4','d7d6','b2b3','f6h5','c1b2','e5g4','d4d2','e7e6','d5e6','c8e6','c3d5','g7b2','a1d1','b2g7','h2h3','g4e5','d2a5','e5c6','a5b5','e8g8','g1e2','a8b8','b5a4','f8e8','e2c3','b8c8','a4b5','c8b8','f1e2','d8g5','b5a4','g5g2','e1d2','g7c3','d2c3','e6d5','c4d5','b7b5','a4h4','e8e4','d1g1','g2g1','h4e4','g1f2','e4f3','f2f3','e2f3','c6e7','b3b4','h5g3','h1e1','b8e8','e1g1','g3f5','c3d2','f5h4','f3e4','f7f5','e4g2','h4g2','g1g2','e7d5','a2a3','d5e3','g2g5','e8e4','d2c3','d6d5','c3d3','e3c4','g5g3']
+    moves = ['d2d3','g7g6','h2h4','f8g7','b1d2','g8f6','c2c4','b8c6','e2e4','e8g8','g1f3','d7d6','g2g3','c8g4','h4h5','g4h5','d1b3','h5f3','d2f3','a8b8','b3d1','e7e5','c1g5']
     for uci_move in moves:
         do_uci_move(uci_move, board, is_white)
         is_white = not is_white
     start = time.time()
     best_move_uci = play_turn(board, previous_uci_move, is_white, 200, 50)
     print('time taken: ' + str(time.time() - start))
-    #print('bestmove ' + best_move_uci)
+    print('bestmove ' + best_move_uci)
+    pr.print_stats(sort="tottime")
+
 
 
 def play_on_console():
@@ -72,7 +84,7 @@ def play_on_console():
     # turn, (board, opponents_uci_move) = 10, init_normal_board()
     turn, (board, opponents_uci_move), Search.can_use_hard_coded = 4, init_attack_board(), False
     print(board)
-    if input("Is the engine white?: y/n ") == 'y':
+    if raw_input("Is the engine white?: y/n ") == 'y':
         is_engine_white = True
         n = 1
     else:
@@ -82,7 +94,7 @@ def play_on_console():
     game_over = False
     while not game_over:
         if n % 2 == 0:
-            opponents_uci_move = input("Enter move: ").replace(" ", "")
+            opponents_uci_move = raw_input("Enter move: ").replace(" ", "")
             do_uci_move(opponents_uci_move, board, not is_engine_white)
         else:
             print("\nEngine's Turn:")
@@ -103,7 +115,6 @@ def play_on_console():
                 print('Move: ' + best_move_uci)
                 print_stats(time.time() - start, turn)
                 turn += 1
-            transposition_table.clear()
         print(board)
         n += 1
 
@@ -113,10 +124,10 @@ def print_stats(time_dif, turn):
         print('Time: ' + str(time_dif))
         print('#nodes: ' + str(visit_node()))
         print('#nodes/sec: ' + str(visit_node() // time_dif) + '\n')
-        # print('# transposition table hits: ' + str(use_transposition_table()) + '\n')
+        print('# transposition table hits: ' + str(use_transposition_table()) + '\n')
 
 
 if __name__ == "__main__":
-    #debug_position()
+    debug_position()
     #play_on_console()
-    play_uci()
+    #play_uci()

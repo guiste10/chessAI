@@ -4,7 +4,7 @@ from move import Zobrist as Zob
 from ai.Evaluation import piece_value_to_placement_score, piece_value_to_piece_score
 
 
-class Move:
+class Move(object):
     def __init__(self, row_1, col_1, row_2, col_2, is_white, to_piece=Pieces.OO):
         self.row_1 = row_1
         self.col_1 = col_1
@@ -40,21 +40,21 @@ class Move:
 
 class KingMove(Move):  # castling rights unchanged (castling was already not possible)
     def __init__(self, row_1, col_1, row_2, col_2, is_white, to_piece=Pieces.OO):
-        super().__init__(row_1, col_1, row_2, col_2, is_white, to_piece)
+        super(KingMove, self).__init__(row_1, col_1, row_2, col_2, is_white, to_piece)
         self.is_white = is_white
 
     def do_move(self, board, current_eval):
         board.king_pos[self.is_white] = (self.row_2, self.col_2)
-        return super().do_move(board, current_eval)
+        return super(KingMove, self).do_move(board, current_eval)
 
     def undo_move(self, board):
         board.king_pos[self.is_white] = (self.row_1, self.col_1)
-        super().undo_move(board)
+        super(KingMove, self).undo_move(board)
 
 
 class MoveCastlingRightsChange(Move):  # change castling rights related to a rook or king's capture/move
     def __init__(self, row_1, col_1, row_2, col_2, is_white, to_piece=Pieces.OO):
-        super().__init__(row_1, col_1, row_2, col_2, is_white, to_piece)
+        super(MoveCastlingRightsChange, self).__init__(row_1, col_1, row_2, col_2, is_white, to_piece)
         self.is_white = is_white
 
     def do_move(self, board, current_eval):
@@ -63,7 +63,7 @@ class MoveCastlingRightsChange(Move):  # change castling rights related to a roo
             board.cannot_castle[self.is_white] = True
         else:  # rook
             board.rook_moved[(self.row_1, self.col_1)] = True
-        return super().do_move(board, current_eval)
+        return super(MoveCastlingRightsChange, self).do_move(board, current_eval)
 
     def undo_move(self, board):
         if value_to_piece_short[board.board[self.row_2][self.col_2]] == 'k':
@@ -71,7 +71,7 @@ class MoveCastlingRightsChange(Move):  # change castling rights related to a roo
             board.cannot_castle[self.is_white] = False
         else:  # rook
             board.rook_moved[(self.row_1, self.col_1)] = False
-        super().undo_move(board)
+        super(MoveCastlingRightsChange, self).undo_move(board)
 
     def update_hash(self, board, piece_val):
         if self.col_1 == king_start_col:
@@ -81,7 +81,7 @@ class MoveCastlingRightsChange(Move):  # change castling rights related to a roo
             board.current_hash ^= Zob.castling_rights_hash[self.is_white][True]
         else:
             board.current_hash ^= Zob.castling_rights_hash[self.is_white][False]
-        super().update_hash(board, piece_val)
+        super(MoveCastlingRightsChange, self).update_hash(board, piece_val)
 
 
 class Castle:
@@ -136,7 +136,7 @@ class Castle:
 
 class EnPassant(Move):
     def __init__(self, row_1, col_1, row_2, col_2, is_white):
-        super().__init__(row_1, col_1, row_2, col_2, is_white)
+        super(EnPassant, self).__init__(row_1, col_1, row_2, col_2, is_white)
 
     def do_move(self, board, current_eval):
         self.update_hash(board, promotion_color_to_value[('p', self.is_white)])
@@ -159,10 +159,10 @@ class EnPassant(Move):
 
 
 class Promotion(Move):
-    def __init__(self, row_1, col_1, row_2, col_2, promotion_piece, is_white, to_piece=Pieces.OO):
-        super().__init__(row_1, col_1, row_2, col_2, is_white)
-        self.promotion_piece = promotion_piece
+    def __init__(self, row_1, col_1, row_2, col_2, is_white, to_piece=Pieces.OO):
+        super(Promotion, self).__init__(row_1, col_1, row_2, col_2, is_white)
         self.to_piece = to_piece  # promotion while capturing
+        self.promotion_piece = promotion_color_to_value[('q', self.is_white)]  # only consider queen promotions for efficiency
 
     def do_move(self, board, current_eval):
         self.update_hash(board, board.board[self.row_1][self.col_1])

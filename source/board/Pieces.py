@@ -1,4 +1,8 @@
+# coding=utf-8
 class Pieces:
+    def __init__(self):
+        pass
+
     XX = 7
     OO = 0
     WP = 1
@@ -35,8 +39,6 @@ promotion_color_to_value = {('k', True): 6, ('q', True): 5, ('r', True): 2, ('b'
 value_to_piece_short = {0: 'wtf', 1: 'p', 2: 'r', 3: 'n', 4: 'b', 5: 'q', 6: 'k', -1: 'p', -2: 'r', -3: 'n', -4: 'b', -5: 'q', -6: 'k'}
 
 value_to_piece_img = {-1: '♟', -2: '♜', -3: '♞', -4: '♝', -5: '♛', -6: '♚', 1: '♙', 2: '♖', 3: '♘', 4: '♗', 5: '♕', 6: '♔', 0: '.'}
-
-possible_promotions = {True: (2, 3, 4, 5), False: (-2, -3, -4, -5)}
 
 black_walkable_squares = {1, 2, 3, 4, 5, 6, 0}
 white_piece_values = {1, 2, 3, 4, 5, 6}

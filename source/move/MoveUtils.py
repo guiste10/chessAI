@@ -1,3 +1,4 @@
+from __future__ import print_function
 from board.Pieces import Pieces, value_to_piece_short, promotion_color_to_value, king_start_pos, rook_start_pos
 
 col_to_uci_dict = {2: 'a', 3: 'b', 4: 'c', 5: 'd', 6: 'e', 7: 'f', 8: 'g', 9: 'h', }
