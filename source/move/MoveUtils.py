@@ -23,39 +23,30 @@ def castle_kingside(board, row_1, col_1):
     board[row_1][col_1 + 3] = Pieces.OO
 
 
-def uci_move_to_move(uci_move):
+def uci_move_to_move_simple(uci_move):
     return (uci_to_col_dict[uci_move[0]], uci_to_row_dict[uci_move[1]], uci_to_col_dict[uci_move[2]],
             uci_to_row_dict[uci_move[3]])
 
-
-def do_uci_move(uci_move, board, is_white):
-    (col_1, row_1, col_2, row_2) = uci_move_to_move(uci_move)
+def uci_move_to_move_object(uci_move, is_opponent_white, board):
+    from Moves import Move, KingMove, MoveCastlingRightsChange, Castle, EnPassant, Promotion
+    (col_1, row_1, col_2, row_2) = uci_move_to_move_simple(uci_move)
+    to_piece = board.board[row_2][col_2]
     if len(uci_move) > 4:  # promotion
-        board.board[row_1][col_1] = Pieces.OO
-        board.board[row_2][col_2] = promotion_color_to_value[(uci_move[4], is_white)]
-    elif value_to_piece_short[board.board[row_1][col_1]] == 'k':
-        board.king_pos[is_white] = (row_2, col_2)  # update king pos
-        board.cannot_castle[is_white] = True
+        return Promotion(row_1, col_1, row_2, col_2, is_opponent_white, to_piece)
+    if value_to_piece_short[board.board[row_1][col_1]] == 'k':
         if abs(col_2 - col_1) == 2:  # castle
-            if col_2 - col_1 == 2:
-                castle_kingside(board.board, row_1, col_1)
-            else:
-                castle_queenside(board.board, row_1, col_1)
-        else:
-            board.board[row_2][col_2] = board.board[row_1][col_1]
-            board.board[row_1][col_1] = Pieces.OO
-    else:  # en passant/move/capture
-        if value_to_piece_short[board.board[row_1][col_1]] == 'p' and col_1 != col_2 and board.board[row_2][col_2] == Pieces.OO:
-            board.board[row_1][col_2] = Pieces.OO  # en passant kill
-        board.board[row_2][col_2] = board.board[row_1][col_1]
-        board.board[row_1][col_1] = Pieces.OO
-        if (row_1, col_1) in rook_start_pos[is_white]:
-            board.rook_moved[(row_1, col_1)] = True
+            return Castle(True, is_opponent_white) if col_2 - col_1 == 2 else Castle(False, is_opponent_white)
+        elif board.cannot_castle[is_opponent_white] or board.both_rooks_moved(is_opponent_white):
+            return KingMove(row_1, col_1, row_2, col_2, is_opponent_white, to_piece)
+        return MoveCastlingRightsChange(row_1, col_1, row_2, col_2, is_opponent_white, to_piece)
+    if value_to_piece_short[board.board[row_1][col_1]] == 'r':
+        if board.cannot_castle[is_opponent_white] or (row_1, col_1) not in rook_start_pos[is_opponent_white] or board.rook_moved[(row_1, col_1)]:
+            return Move(row_1, col_1, row_2, col_2, is_opponent_white, to_piece)
+        return MoveCastlingRightsChange(row_1, col_1, row_2, col_2, is_opponent_white, to_piece)
+    if value_to_piece_short[board.board[row_1][col_1]] == 'p' and col_1 != col_2 and board.board[row_2][col_2] == Pieces.OO:  # en passant
+        return EnPassant(row_1, col_1, row_2, col_2, is_opponent_white)
+    return Move(row_1, col_1, row_2, col_2, is_opponent_white, to_piece)
 
-def equals_inverted_uci(move_1, move_2):
-    if move_1 == NONE or len(move_1) != 4 or len(move_2) != 4:
-        return False
-    return move_1[2:] + move_1[:2] == move_2
 
 def move_to_uci_move(move):
     if move == 'none':

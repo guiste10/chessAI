@@ -13,17 +13,15 @@ class Move(object):
         self.is_white = is_white
         self.to_piece = to_piece
 
-    def do_move(self, board, current_eval):
+    def do_move(self, board):
         self.update_hash(board, board.board[self.row_1][self.col_1])
         piece_val = board.board[self.row_1][self.col_1]
-        new_eval = current_eval - piece_value_to_placement_score[piece_val][self.row_1][self.col_1] \
-                   + piece_value_to_placement_score[piece_val][self.row_2][self.col_2]
+        board.current_eval += piece_value_to_placement_score[piece_val][self.row_2][self.col_2] - piece_value_to_placement_score[piece_val][self.row_1][self.col_1]
         if self.to_piece != Pieces.OO:
             enemy_piece_val = board.board[self.row_2][self.col_2]
-            new_eval -= piece_value_to_piece_score[enemy_piece_val] + piece_value_to_placement_score[enemy_piece_val][self.row_2][self.col_2]
+            board.current_eval -= piece_value_to_piece_score[enemy_piece_val] + piece_value_to_placement_score[enemy_piece_val][self.row_2][self.col_2]
         board.board[self.row_2][self.col_2] = board.board[self.row_1][self.col_1]
         board.board[self.row_1][self.col_1] = Pieces.OO
-        return new_eval
 
     def undo_move(self, board):
         board.board[self.row_1][self.col_1] = board.board[self.row_2][self.col_2]
@@ -43,9 +41,9 @@ class KingMove(Move):  # castling rights unchanged (castling was already not pos
         super(KingMove, self).__init__(row_1, col_1, row_2, col_2, is_white, to_piece)
         self.is_white = is_white
 
-    def do_move(self, board, current_eval):
+    def do_move(self, board):
         board.king_pos[self.is_white] = (self.row_2, self.col_2)
-        return super(KingMove, self).do_move(board, current_eval)
+        return super(KingMove, self).do_move(board)
 
     def undo_move(self, board):
         board.king_pos[self.is_white] = (self.row_1, self.col_1)
@@ -57,13 +55,13 @@ class MoveCastlingRightsChange(Move):  # change castling rights related to a roo
         super(MoveCastlingRightsChange, self).__init__(row_1, col_1, row_2, col_2, is_white, to_piece)
         self.is_white = is_white
 
-    def do_move(self, board, current_eval):
+    def do_move(self, board):
         if value_to_piece_short[board.board[self.row_1][self.col_1]] == 'k':
             board.king_pos[self.is_white] = (self.row_2, self.col_2)
             board.cannot_castle[self.is_white] = True
         else:  # rook
             board.rook_moved[(self.row_1, self.col_1)] = True
-        return super(MoveCastlingRightsChange, self).do_move(board, current_eval)
+        return super(MoveCastlingRightsChange, self).do_move(board)
 
     def undo_move(self, board):
         if value_to_piece_short[board.board[self.row_2][self.col_2]] == 'k':
@@ -89,24 +87,23 @@ class Castle:
         self.kingside = kingside
         self.is_white = is_white
 
-    def do_move(self, board, current_eval):
+    def do_move(self, board):
         self.update_hash(board, king_start_pos[self.is_white][0], king_start_pos[self.is_white][1])
         (row, col) = king_start_pos[self.is_white]
         king_val = board.board[row][col]
         if self.kingside:
             rook_val = board.board[row][col + 3]
-            new_eval = current_eval - piece_value_to_placement_score[king_val][row][col] + piece_value_to_placement_score[king_val][row][col + 2] - \
-                       piece_value_to_placement_score[rook_val][row][col + 3] + piece_value_to_placement_score[rook_val][row][col + 1]
+            board.current_eval += piece_value_to_placement_score[king_val][row][col + 2] - piece_value_to_placement_score[king_val][row][col] \
+                        + piece_value_to_placement_score[rook_val][row][col + 1] - piece_value_to_placement_score[rook_val][row][col + 3]
             castle_kingside(board.board, row, col)
             board.king_pos[self.is_white] = (row, col + 2)
         else:
             rook_val = board.board[row][col - 4]
-            new_eval = current_eval - piece_value_to_placement_score[king_val][row][col] + piece_value_to_placement_score[king_val][row][col - 2] - \
-                       piece_value_to_placement_score[rook_val][row][col - 4] + piece_value_to_placement_score[rook_val][row][col - 1]
+            board.current_eval += piece_value_to_placement_score[king_val][row][col - 2] - piece_value_to_placement_score[king_val][row][col] - \
+                       + piece_value_to_placement_score[rook_val][row][col - 1] - piece_value_to_placement_score[rook_val][row][col - 4]
             castle_queenside(board.board, row, col)
             board.king_pos[self.is_white] = (row, col - 2)
         board.cannot_castle[self.is_white] = True
-        return new_eval
 
     def undo_move(self, board):
         (row, col) = king_start_pos[self.is_white]
@@ -138,15 +135,14 @@ class EnPassant(Move):
     def __init__(self, row_1, col_1, row_2, col_2, is_white):
         super(EnPassant, self).__init__(row_1, col_1, row_2, col_2, is_white)
 
-    def do_move(self, board, current_eval):
+    def do_move(self, board):
         self.update_hash(board, promotion_color_to_value[('p', self.is_white)])
         piece_val = board.board[self.row_1][self.col_1]
-        new_eval = current_eval - piece_value_to_placement_score[piece_val][self.row_1][self.col_1] \
-                   + piece_value_to_placement_score[piece_val][self.row_2][self.col_2] - (piece_value_to_piece_score[-piece_val] + piece_value_to_placement_score[-piece_val][self.row_1][self.col_2])
+        board.current_eval += piece_value_to_placement_score[piece_val][self.row_2][self.col_2] - piece_value_to_placement_score[piece_val][self.row_1][self.col_1] \
+                    - piece_value_to_piece_score[-piece_val] - piece_value_to_placement_score[-piece_val][self.row_1][self.col_2]
         board.board[self.row_2][self.col_2] = board.board[self.row_1][self.col_1]
         board.board[self.row_1][self.col_2] = Pieces.OO  # kill enemy pawn
         board.board[self.row_1][self.col_1] = Pieces.OO
-        return new_eval
 
     def undo_move(self, board):
         board.board[self.row_1][self.col_1] = board.board[self.row_2][self.col_2]
@@ -164,17 +160,16 @@ class Promotion(Move):
         self.to_piece = to_piece  # promotion while capturing
         self.promotion_piece = promotion_color_to_value[('q', self.is_white)]  # only consider queen promotions for efficiency
 
-    def do_move(self, board, current_eval):
+    def do_move(self, board):
         self.update_hash(board, board.board[self.row_1][self.col_1])
         piece_val = board.board[self.row_1][self.col_1]
-        new_eval = current_eval - piece_value_to_piece_score[piece_val] - piece_value_to_placement_score[piece_val][self.row_1][self.col_1] \
-                   + piece_value_to_piece_score[self.promotion_piece] + piece_value_to_placement_score[self.promotion_piece][self.row_2][self.col_2]
+        board.current_eval += piece_value_to_piece_score[self.promotion_piece] + piece_value_to_placement_score[self.promotion_piece][self.row_2][self.col_2]  \
+                              - piece_value_to_piece_score[piece_val] - piece_value_to_placement_score[piece_val][self.row_1][self.col_1]
         if self.to_piece != Pieces.OO:
             enemy_piece_val = board.board[self.row_2][self.col_2]
-            new_eval -= piece_value_to_piece_score[enemy_piece_val] + piece_value_to_placement_score[enemy_piece_val][self.row_2][self.col_2]
+            board.current_eval -= piece_value_to_piece_score[enemy_piece_val] + piece_value_to_placement_score[enemy_piece_val][self.row_2][self.col_2]
         board.board[self.row_2][self.col_2] = self.promotion_piece
         board.board[self.row_1][self.col_1] = Pieces.OO
-        return new_eval
 
     def undo_move(self, board):
         original_pawn_val = promotion_color_to_value[('p', self.is_white)]

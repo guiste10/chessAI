@@ -101,7 +101,7 @@ def init_hash(board):
     for row in range(2, 10):
         for col in range(2, 10):
             hash_val ^= piece_hash_for_squares[board[row][col]][row][col]
-    return hash_val
+    print(hash_val)
 
 
 def rand_int_64():
