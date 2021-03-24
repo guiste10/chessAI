@@ -11,6 +11,7 @@ count = -1
 transposition_table = {}  # {hash: (depth, score, best_move)}
 can_use_hard_coded = True
 EXACT, LOWERBOUND, UPPERBOUND = 0, -1, 1
+THREEFOLD_REPETITION = 3
 
 
 def play_turn(board, opponents_uci_move, is_engine_white, time_left_sec, turn):
@@ -31,10 +32,10 @@ def play_turn(board, opponents_uci_move, is_engine_white, time_left_sec, turn):
 
 def search_best_move(board, is_engine_white, opponents_uci_move, time_left_sec, previous_two_evals):
     start, depth_max, best_move, best_eval = time.time(), 1, 'no move', 0
+    # depth_max = maximum_depth = 3
+    # while depth_max <= maximum_depth:
     maximum_depth = 6 if time_left_sec > 60 else 5
-    # maximum_depth = 6
     while can_increase_time(depth_max, maximum_depth, time_left_sec, start, best_eval):
-        # best_eval, best_move = normal_search(board, depth_max, is_engine_white, opponents_uci_move)
         best_eval, best_move = mtdf_search(board, depth_max, is_engine_white, opponents_uci_move, previous_two_evals)
         previous_two_evals.append(best_eval)
         print("Nodes: " + str(visit_node()) + " table size: " + str(len(transposition_table)))
@@ -68,6 +69,8 @@ def mtdf_search(board, depth_max, is_engine_white, opponents_uci_move, previous_
 def alpha_beta_bounds(board, opponents_uci_move, is_white, gamma, depth):
     # transposition_table : {K = hash, V = (depth, score, best_move, type)}
     visit_node()
+    if board.current_hash in board.history and board.history[board.current_hash] == THREEFOLD_REPETITION:
+        return 0
     if board.current_hash in transposition_table:
         entry = transposition_table[board.current_hash]
         if entry[0] >= depth:

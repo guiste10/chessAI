@@ -70,7 +70,7 @@ def debug_position():
     # pr.enable()
     board, previous_uci_move = init_normal_board()
     is_white = True
-    moves = ['d2d4','g7g6','g1f3','f8g7','b1c3','g8f6','h2h3','d7d5','f3e5','f6e4','a2a4','e4c3','d1d2','c3e4','d2f4','e8g8','f4h4','c7c5','c1e3','c5d4','e5g6','f7g6','e3d2','g7e5','e2e3','e5g3','h4h7','g8h7','e1c1']
+    moves = ['e2e3','g7g6','b1c3','f8g7','d1f3','g8f6','b2b3','f6d5','c1b2','d5b4','f1c4','d7d5','c4d5','b4d5','a1d1','e7e6','h2h4','e8g8','h4h5','d5b4','d2d4','b4c2','e1d2','c2d4','e3d4','d8d4','d2c1','d4c5','h5g6','f7g6','f3h3','h7h6','h3e3','c5e3','f2e3']
     for uci_move in moves:
         previous_move = uci_move_to_move_object(uci_move, is_white, board)
         previous_move.do_move(board)

@@ -15,8 +15,8 @@ def get_direction(diff, divider):
 
 class BoardState:
 
-    def __init__(self, board):
-        self.board = [row[:] for row in board]
+    def __init__(self, board_matrix):
+        self.board = [row[:] for row in board_matrix]
         self.king_pos = {False: (start_row_black, king_start_col), True: (start_row_white, king_start_col)}
         self.cannot_castle = {True: False, False: False}
         self.rook_moved = {(start_row_black, queen_rook_start_col): False, (start_row_black, king_rook_start_col): False, (start_row_white, queen_rook_start_col): False,
@@ -24,6 +24,7 @@ class BoardState:
         self.current_hash = 8414336397673848251  # initialized zobrist hash
         from ai import Evaluation
         self.current_eval = Evaluation.evaluate(self.board)
+        self.history = {self.current_hash: 1}  # position: count
 
     def __str__(self):
         board_str = "\t"
@@ -263,9 +264,10 @@ class BoardState:
         memo_hash, memo_eval = self.current_hash, self.current_eval
         move.do_move(self)
         to_col, to_row = self.advance_when_empty(king_row, king_col, direction)
+        response = True if self.board[to_row][to_col] in target_values else False
         move.undo_move(self)
         self.current_hash, self.current_eval = memo_hash, memo_eval
-        return True if self.board[to_row][to_col] in target_values else False
+        return response
 
     ###############################################################################
     # Board state check performed at each turn                                    #
