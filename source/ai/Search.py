@@ -2,7 +2,8 @@ from __future__ import print_function
 from move.MoveUtils import move_to_uci_move
 from move.Moves import NullMove
 from board.Pieces import Pieces, promotion_color_to_value
-from Evaluation import piece_value_to_placement_score, queen_placement_score_middle_white, queen_placement_score_middle_black, king_placement_score_end_white, king_placement_score_end_black
+from Evaluation import piece_value_to_placement_score, queen_placement_score_middle_white, queen_placement_score_middle_black, king_placement_score_end_white, king_placement_score_end_black, \
+    pawn_placement_score_end_white, pawn_placement_score_end_black, bishop_placement_score_end_white, bishop_placement_score_end_black
 import time
 from collections import deque
 import itertools
@@ -19,9 +20,13 @@ def play_turn(board, opponents_uci_move, is_engine_white, time_left_sec, turn):
     if turn == 10:
         piece_value_to_placement_score[promotion_color_to_value[('q', True)]] = queen_placement_score_middle_white
         piece_value_to_placement_score[promotion_color_to_value[('q', False)]] = queen_placement_score_middle_black
+        piece_value_to_placement_score[promotion_color_to_value[('b', True)]] = bishop_placement_score_end_white
+        piece_value_to_placement_score[promotion_color_to_value[('b', False)]] = bishop_placement_score_end_black
     if board.is_end_game():  # to do access turn with board.turn instead  # entering middle game
         piece_value_to_placement_score[promotion_color_to_value[('k', True)]] = king_placement_score_end_white
         piece_value_to_placement_score[promotion_color_to_value[('k', False)]] = king_placement_score_end_black
+        piece_value_to_placement_score[promotion_color_to_value[('p', True)]] = pawn_placement_score_end_white
+        piece_value_to_placement_score[promotion_color_to_value[('p', False)]] = pawn_placement_score_end_black
     global can_use_hard_coded
     if turn <= 3 and can_use_hard_coded:
         hard_coded_move = get_hard_coded_opening_move(board, is_engine_white, turn)
