@@ -1,6 +1,5 @@
 from board.Pieces import Pieces as Pc
 from board.BoardState import BoardState
-from move.MoveUtils import NONE
 
 normal_board = [[Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX],
                 [Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX],
@@ -82,16 +81,16 @@ en_passant_board_black = [[Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.XX, Pc.X
 
 
 def init_normal_board():
-    return BoardState(normal_board), NONE
+    return BoardState(normal_board), None
 
 
 def init_no_attack_board():
-    return BoardState(no_attack_board), NONE
+    return BoardState(no_attack_board), None
 
 
 def init_attack_board():
     board = BoardState(attack_board)
     board.cannot_castle[True] = True  # white castled
     board.king_pos[True] = (9, 8)
-    opponents_uci_move = NONE
+    opponents_uci_move = None
     return board, opponents_uci_move

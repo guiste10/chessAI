@@ -101,7 +101,7 @@ def init_hash(board):
     for row in range(2, 10):
         for col in range(2, 10):
             hash_val ^= piece_hash_for_squares[board[row][col]][row][col]
-    print(hash_val)
+    return hash_val
 
 
 def rand_int_64():
@@ -113,7 +113,7 @@ def rand_int_64():
 # access hash: piece_hash_for_squares[piece_val][row][col]
 piece_hash_for_squares = {piece_val: {row: {col: rand_int_64() for col in range(2, 10)} for row in range(2, 10)} for piece_val in range(-6, 7)}
 
-side_hash = {True: rand_int_64(), False: rand_int_64()}
+black_hash = rand_int_64()
 
 file_hash = {col: rand_int_64() for col in range(2, 10)}
 

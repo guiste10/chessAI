@@ -1,7 +1,7 @@
 from board.Pieces import Pieces, king_start_pos, value_to_piece_short, promotion_color_to_value, king_start_col, king_rook_start_col
-from move.MoveUtils import castle_kingside, castle_queenside
 from move import Zobrist as Zob
 from ai.Evaluation import piece_value_to_placement_score, piece_value_to_piece_score
+
 
 def add_to_history(history, position_hash):
     if position_hash in history:
@@ -9,11 +9,13 @@ def add_to_history(history, position_hash):
     else:
         history[position_hash] = 1
 
+
 def remove_from_history(history, position_hash):
     if history[position_hash] > 1:
         history[position_hash] -= 1
     else:
         history.pop(position_hash)
+
 
 class Move(object):
     def __init__(self, row_1, col_1, row_2, col_2, is_white, to_piece=Pieces.OO):
@@ -41,12 +43,11 @@ class Move(object):
         board.board[self.row_2][self.col_2] = self.to_piece
 
     def update_hash(self, board, piece_val):
-        board.current_hash ^= Zob.side_hash[self.is_white] ^ Zob.piece_hash_for_squares[piece_val][self.row_1][self.col_1] ^ Zob.piece_hash_for_squares[piece_val][self.row_2][self.col_2]
+        board.current_hash ^= Zob.black_hash ^ Zob.piece_hash_for_squares[piece_val][self.row_1][self.col_1] ^ Zob.piece_hash_for_squares[piece_val][self.row_2][self.col_2]
         if self.to_piece != Pieces.OO:
             board.current_hash ^= Zob.piece_hash_for_squares[self.to_piece][self.row_2][self.col_2]
         elif value_to_piece_short[piece_val] == 'p' and abs(self.row_1 - self.row_2) == 2:
             board.current_hash ^= Zob.file_hash[self.col_1]
-
 
 
 class KingMove(Move):  # castling rights unchanged (castling was already not possible)
@@ -107,15 +108,21 @@ class Castle:
         king_val = board.board[row][col]
         if self.kingside:
             rook_val = board.board[row][col + 3]
-            board.current_eval += piece_value_to_placement_score[king_val][row][col + 2] - piece_value_to_placement_score[king_val][row][col] \
-                        + piece_value_to_placement_score[rook_val][row][col + 1] - piece_value_to_placement_score[rook_val][row][col + 3]
-            castle_kingside(board.board, row, col)
+            board.current_eval += piece_value_to_placement_score[king_val][row][col + 2] - piece_value_to_placement_score[king_val][row][col] + piece_value_to_placement_score[rook_val][row][col + 1] - \
+                                  piece_value_to_placement_score[rook_val][row][col + 3]
+            board.board[row][col + 2] = board.board[row][col]
+            board.board[row][col] = Pieces.OO
+            board.board[row][col + 1] = board.board[row][col + 3]
+            board.board[row][col + 3] = Pieces.OO
             board.king_pos[self.is_white] = (row, col + 2)
         else:
             rook_val = board.board[row][col - 4]
-            board.current_eval += piece_value_to_placement_score[king_val][row][col - 2] - piece_value_to_placement_score[king_val][row][col] - \
-                       + piece_value_to_placement_score[rook_val][row][col - 1] - piece_value_to_placement_score[rook_val][row][col - 4]
-            castle_queenside(board.board, row, col)
+            board.current_eval += piece_value_to_placement_score[king_val][row][col - 2] - piece_value_to_placement_score[king_val][row][col] - + piece_value_to_placement_score[rook_val][row][
+                col - 1] - piece_value_to_placement_score[rook_val][row][col - 4]
+            board.board[row][col - 2] = board.board[row][col]
+            board.board[row][col] = Pieces.OO
+            board.board[row][col - 1] = board.board[row][col - 4]
+            board.board[row][col - 4] = Pieces.OO
             board.king_pos[self.is_white] = (row, col - 2)
         board.cannot_castle[self.is_white] = True
 
@@ -137,7 +144,7 @@ class Castle:
 
     def update_hash(self, board, king_row, king_col):
         (king_val, rook_val) = (promotion_color_to_value[('k', self.is_white)], promotion_color_to_value[('r', self.is_white)])
-        board.current_hash ^= Zob.side_hash[self.is_white] ^ Zob.piece_hash_for_squares[king_val][king_row][king_col]
+        board.current_hash ^= Zob.black_hash ^ Zob.piece_hash_for_squares[king_val][king_row][king_col]
         if self.kingside:
             board.current_hash ^= Zob.piece_hash_for_squares[king_val][king_row][king_col + 2] ^ Zob.piece_hash_for_squares[rook_val][king_row][king_col + 3] ^ \
                                   Zob.piece_hash_for_squares[rook_val][king_row][king_col + 1] ^ Zob.castling_rights_hash[self.is_white][True]
@@ -154,8 +161,8 @@ class EnPassant(Move):
         self.update_hash(board, promotion_color_to_value[('p', self.is_white)])
         add_to_history(board.history, board.current_hash)
         piece_val = board.board[self.row_1][self.col_1]
-        board.current_eval += piece_value_to_placement_score[piece_val][self.row_2][self.col_2] - piece_value_to_placement_score[piece_val][self.row_1][self.col_1] \
-                    - piece_value_to_piece_score[-piece_val] - piece_value_to_placement_score[-piece_val][self.row_1][self.col_2]
+        board.current_eval += piece_value_to_placement_score[piece_val][self.row_2][self.col_2] - piece_value_to_placement_score[piece_val][self.row_1][self.col_1] - piece_value_to_piece_score[
+            -piece_val] - piece_value_to_placement_score[-piece_val][self.row_1][self.col_2]
         board.board[self.row_2][self.col_2] = board.board[self.row_1][self.col_1]
         board.board[self.row_1][self.col_2] = Pieces.OO  # kill enemy pawn
         board.board[self.row_1][self.col_1] = Pieces.OO
@@ -167,8 +174,8 @@ class EnPassant(Move):
         board.board[self.row_2][self.col_2] = Pieces.OO
 
     def update_hash(self, board, piece_val):
-        board.current_hash ^= Zob.side_hash[self.is_white] ^ Zob.piece_hash_for_squares[piece_val][self.row_1][self.col_1] ^ Zob.piece_hash_for_squares[piece_val][self.row_2][self.col_2] \
-                              ^ Zob.piece_hash_for_squares[-piece_val][self.row_1][self.col_2]
+        board.current_hash ^= Zob.black_hash ^ Zob.piece_hash_for_squares[piece_val][self.row_1][self.col_1] ^ Zob.piece_hash_for_squares[piece_val][self.row_2][self.col_2] ^ \
+                              Zob.piece_hash_for_squares[-piece_val][self.row_1][self.col_2]
 
 
 class Promotion(Move):
@@ -181,8 +188,8 @@ class Promotion(Move):
         self.update_hash(board, board.board[self.row_1][self.col_1])
         add_to_history(board.history, board.current_hash)
         piece_val = board.board[self.row_1][self.col_1]
-        board.current_eval += piece_value_to_piece_score[self.promotion_piece] + piece_value_to_placement_score[self.promotion_piece][self.row_2][self.col_2]  \
-                              - piece_value_to_piece_score[piece_val] - piece_value_to_placement_score[piece_val][self.row_1][self.col_1]
+        board.current_eval += piece_value_to_piece_score[self.promotion_piece] + piece_value_to_placement_score[self.promotion_piece][self.row_2][self.col_2] - piece_value_to_piece_score[piece_val] - \
+                              piece_value_to_placement_score[piece_val][self.row_1][self.col_1]
         if self.to_piece != Pieces.OO:
             enemy_piece_val = board.board[self.row_2][self.col_2]
             board.current_eval -= piece_value_to_piece_score[enemy_piece_val] + piece_value_to_placement_score[enemy_piece_val][self.row_2][self.col_2]
@@ -196,6 +203,18 @@ class Promotion(Move):
         board.board[self.row_2][self.col_2] = self.to_piece
 
     def update_hash(self, board, original_pawn_val):
-        board.current_hash ^= Zob.side_hash[self.is_white] ^ Zob.piece_hash_for_squares[original_pawn_val][self.row_1][self.col_1] ^ Zob.piece_hash_for_squares[self.promotion_piece][self.row_2][self.col_2]
+        board.current_hash ^= Zob.black_hash ^ Zob.piece_hash_for_squares[original_pawn_val][self.row_1][self.col_1] ^ Zob.piece_hash_for_squares[self.promotion_piece][self.row_2][
+            self.col_2]
         if self.to_piece != Pieces.OO:
             board.current_hash ^= Zob.piece_hash_for_squares[self.to_piece][self.row_2][self.col_2]
+
+
+class NullMove:
+    def __init__(self, is_white):
+        self.is_white = is_white
+
+    def do_move(self, board):
+        board.current_hash ^= Zob.black_hash
+
+    def undo_move(self, board):
+        board.current_hash ^= Zob.black_hash

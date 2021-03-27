@@ -1,6 +1,6 @@
 from __future__ import print_function
 from board.BoardPositions import init_normal_board, init_attack_board
-from move.MoveUtils import NONE, uci_move_to_move_object, move_to_uci_move
+from move.MoveUtils import uci_move_to_move_object, move_to_uci_move
 from ai import Search
 from ai.Search import play_turn, visit_node
 import time
@@ -18,7 +18,7 @@ def play_uci():
     logging.debug('engine started executing')
     board, previous_uci_move = init_normal_board()
     is_white, Search.can_use_hard_coded, turn = True, True, 1
-    quit_now, prev_pos_line = False, NONE
+    quit_now, prev_pos_line = False, None
     while not quit_now:
         line = raw_input().rstrip()
         logging.debug(line)
@@ -69,8 +69,23 @@ def debug_position():
     # pr = cProfile.Profile()
     # pr.enable()
     board, previous_uci_move = init_normal_board()
+    previous_move = None
     is_white = True
-    moves = ['g1f3','d7d5','g2g3','b8c6','f1g2','e7e5','e1g1','e5e4','f3e1','h7h5','d2d3','f8b4','a2a3','b4e1','f1e1','f7f5','d3e4','f5e4','c2c4','c8e6','c4d5','e6d5','b1c3','d5e6','g2e4','d8d1','e1d1','e6b3','e4c6','b7c6','d1d4','g8f6','c1f4','c6c5','d4d2','a8d8','c3b5','d8d2','f4d2','e8d7','d2c3','a7a6','c3f6','g7f6','b5c3','h8e8','g1g2','d7e6','c3e4','b3d5','f2f3','c5c4','a1d1','c7c6','e4c3','f6f5','e2e4','f5e4','f3e4','d5e4','c3e4','e8a8','d1d6','e6e5','g2f3','a8b8','d6c6','b8b3','e4c3','b3b2','c6c4','b2h2','c4c6','h2h1','c6a6','e5d4','c3e4','h1f1','f3e2','f1h1','a6a4','d4e5','e2e3','h1e1','e3d3','e1d1','e4d2','e5d5','a4a5','d5e6','a5h5','e6f6','h5d5','d1a1','d2e4','f6e6','d5a5','a1d1','d3e2','d1d4','e2e3','d4d1','a5a7','d1e1','e3f3','e6e5','a7e7','e5d4','e7d7','d4e5','d7b7','e1f1','f3e3','f1e1','e3f3','e1f1','f3e3','f1e1','e3d3','e1d1','d3c2','d1a1','c2b2','a1d1','b7e7','e5f5','b2c3','d1d5','c3c4','d5a5','e4d6','f5g4','c4b4','a5h5','e7g7','g4f3','d6e8','h5d5','b4c4','d5a5','c4b4','a5d5','b4c4','d5e5','e8d6','e5e3','a3a4','f3g2','d6f5','e3a3','c4b4','a3d3','a4a5','g2f3','a5a6','f3e4','a6a7','d3d8','f5h4','d8a8','g7f7','e4d5','b4c3','d5e6','f7h7','e6f6','h4f3','f6g6','h7d7','g6f6','d7c7','a8g8','c7c6','f6e7']
+
+    # moves1 = ['d2d4','g7g6','e2e4','f8g7','g1e2','g8f6','d1d3','b8c6','c2c3','e8g8','c1g5','d7d6','h2h4','h7h6','g5d2','d6d5','f2f3','e7e5','e4d5','f6d5','d2h6','g7h6','d4e5','c6e5','d3e4','f8e8','e4d4','h6e3','d4d1','c8f5','c3c4','e5d3','d1d3','f5d3','c4d5','d8d5','b1c3','d5d6','a1d1','e3b6','a2a4','b6a5','f3f4','d6d5','d1d2','a5c3','b2c3','d5c4','h1h3','d3e2','f1e2','c4a4','h3f3','a4c4','g2g3','a7a6','e1f2','c4c5','f2f1','e8e3','d2c2','e3f3','e2f3','a8d8','f1g2','d8b8','g3g4','c5e3','f4f5','e3d3','c2f2','g6f5','g4f5','d3f5','f2d2','f5f6','d2d4','g8h8','d4c4','b8g8','c4g4','g8g4','f3g4','f6h4','g2f3','h4f6','f3e4','f6c3','g4c8','h8g8','e4d5','c3d3']
+    # moves2 = ['d5e5','d3e3','e5f6','e3h6','f6e5','h6e3','e5d5','e3d3']
+    # moves3 = ['d5e5','d3d2','e5e4','d2e2','e4d5','e2d3']
+    # moves33 = ['d5e5','d3d2','e5e4','d2e2','e4d5','e2d3']
+    # for moves in (moves1, moves2, moves33):
+    #     for uci_move in moves:
+    #         previous_move = uci_move_to_move_object(uci_move, is_white, board)
+    #         if moves == moves33:
+    #             print(previous_move.__class__.__name__)
+    #         previous_move.do_move(board)
+    #         is_white = not is_white
+    #     print(board.current_hash)
+
+    moves = ['d2d4','g7g6','e2e4','f8g7','g1e2','g8f6','d1d3','b8c6','c2c3','e8g8','c1g5','d7d6','h2h4','h7h6','g5d2','d6d5','f2f3','e7e5','e4d5','f6d5','d2h6','g7h6','d4e5','c6e5','d3e4','f8e8','e4d4','h6e3','d4d1','c8f5','c3c4','e5d3','d1d3','f5d3','c4d5','d8d5','b1c3','d5d6','a1d1','e3b6','a2a4','b6a5','f3f4','d6d5','d1d2','a5c3','b2c3','d5c4','h1h3','d3e2','f1e2','c4a4','h3f3','a4c4','g2g3','a7a6','e1f2','c4c5','f2f1','e8e3','d2c2','e3f3','e2f3','a8d8','f1g2','d8b8','g3g4','c5e3','f4f5','e3d3','c2f2','g6f5','g4f5','d3f5','f2d2','f5f6','d2d4','g8h8','d4c4','b8g8','c4g4','g8g4','f3g4','f6h4','g2f3','h4f6','f3e4','f6c3','g4c8','h8g8','e4d5','c3d3','d5e5','d3e3','e5f6','e3h6','f6e5','h6e3','e5d5','e3d3','d5e5','d3d2','e5e4','d2e2','e4d5']
     for uci_move in moves:
         previous_move = uci_move_to_move_object(uci_move, is_white, board)
         previous_move.do_move(board)
@@ -79,7 +94,7 @@ def debug_position():
     best_move_uci = play_turn(board, move_to_uci_move(previous_move), is_white, 200, 50)
     print('time taken: ' + str(time.time() - start))
     print('bestmove ' + best_move_uci)
-    #pr.print_stats(sort="tottime")
+    # pr.print_stats(sort="tottime")
 
 
 
@@ -111,7 +126,7 @@ def play_on_console():
             # pr.print_stats(sort="tottime")
             if best_move_uci == 'none':
                 game_over = True
-                if board.is_king_attacked(is_engine_white):
+                if board.is_the_king_attacked(is_engine_white):
                     print("\nEngine checkmated !\n")
                 else:
                     print("\nStalemate !\n")
@@ -132,6 +147,6 @@ def print_stats(time_dif, turn):
         print('#nodes/sec: ' + str(visit_node() // time_dif) + '\n')
 
 if __name__ == "__main__":
+    play_uci()
     #debug_position()
     #play_on_console()
-    play_uci()

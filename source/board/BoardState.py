@@ -1,13 +1,11 @@
 import itertools
+
 from board.Pieces import value_to_descriptor, value_to_piece_img, value_to_piece_short, promotion_color_to_value, rook_directions, bishop_directions, queen_directions, is_enemy, get_knight_squares, \
     get_king_squares, get_attacking_enemy_pawn_squares, rook_start_pos, start_row, Pieces, king_start_col, start_row_white, start_row_black, queen_rook_start_col, king_rook_start_col, pawn_row_white, \
     pawn_row_black
 from move import Moves
-from move.MoveUtils import uci_move_to_move_simple, NONE
+from move.MoveUtils import uci_move_to_move_simple
 from move.Moves import Move, EnPassant, Castle, Promotion
-
-is_king_attacked = False
-
 
 def get_direction(diff, divider):
     return diff[0] // divider, diff[1] // divider
@@ -22,9 +20,10 @@ class BoardState:
         self.rook_moved = {(start_row_black, queen_rook_start_col): False, (start_row_black, king_rook_start_col): False, (start_row_white, queen_rook_start_col): False,
                            (start_row_white, king_rook_start_col): False}
         self.current_hash = 8414336397673848251  # initialized zobrist hash
-        from ai import Evaluation
-        self.current_eval = Evaluation.evaluate(self.board)
+        from ai.Evaluation import evaluate
+        self.current_eval = evaluate(self.board)
         self.history = {self.current_hash: 1}  # position: count
+        self.is_king_attacked = False
 
     def __str__(self):
         board_str = "\t"
@@ -47,13 +46,12 @@ class BoardState:
 
     def get_all_moves(self, is_white, enemy_uci_move):
         pseudo_moves_dict = {"move": [], "move2": [], "capture": [], "recap": [], "en passant": [], "promotion": [], "castle": []}
-        global is_king_attacked
-        is_king_attacked = self.is_king_attacked(is_white)
+        self.is_king_attacked = self.is_the_king_attacked(is_white)
         for row in range(2, 10):
             for col in range(2, 10):
                 if is_enemy[not is_white](self.board[row][col]):
                     self.add_piece_moves(row, col, pseudo_moves_dict, is_white)
-        if enemy_uci_move != NONE:
+        if enemy_uci_move is not None:
             enemy_move = uci_move_to_move_simple(enemy_uci_move)
             self.add_en_passant(enemy_move, pseudo_moves_dict, is_white)
         pseudo_moves_sorted_list = itertools.chain(pseudo_moves_dict["en passant"], pseudo_moves_dict["capture"], pseudo_moves_dict["promotion"], pseudo_moves_dict["castle"],
@@ -133,7 +131,7 @@ class BoardState:
     def add_king_moves(self, row, col, is_white, moves):
         (move_class_name, move_storage_name) = ('KingMove', 'move2') if self.cannot_castle[is_white] or self.both_rooks_moved(is_white) else ('MoveCastlingRightsChange', 'move')
         self.add_square_moves(row, col, get_king_squares(row, col), is_white, moves, getattr(Moves, move_class_name), move_storage_name)
-        if not self.cannot_castle[is_white] and not is_king_attacked:
+        if not self.cannot_castle[is_white] and not self.is_king_attacked:
             self.add_castling_moves(row, col, is_white, moves)
 
     def both_rooks_moved(self, is_white):
@@ -159,7 +157,7 @@ class BoardState:
                                                                                                                                                                          is_white) and not self.is_square_attacked(
             row, col - 2, is_white)
 
-    def is_king_attacked(self, is_white):
+    def is_the_king_attacked(self, is_white):
         return self.is_square_attacked(self.king_pos[is_white][0], self.king_pos[is_white][1], is_white)
 
     def is_square_attacked(self, row, col, is_white):
@@ -202,13 +200,13 @@ class BoardState:
     def is_king_attacked_after_move(self, is_white, move):
         memo_hash, memo_eval = self.current_hash, self.current_eval
         move.do_move(self)
-        is_king_attacked_now = self.is_king_attacked(is_white)
+        is_king_attacked_now = self.is_the_king_attacked(is_white)
         move.undo_move(self)
         self.current_hash, self.current_eval = memo_hash, memo_eval
         return is_king_attacked_now
 
     def non_king_move_leaves_king_safe(self, move, is_white, king_row, king_col):  # for non king moves only
-        return self.keep_move_king_attacked(is_white, king_col, king_row, move) if is_king_attacked else self.keep_move_king_safe(is_white, king_col, king_row, move)
+        return self.keep_move_king_attacked(is_white, king_col, king_row, move) if self.is_king_attacked else self.keep_move_king_safe(is_white, king_col, king_row, move)
 
     def keep_move_king_attacked(self, is_white, king_col, king_row, move):
         row_2, col_2 = move.row_2, move.col_2
@@ -280,3 +278,11 @@ class BoardState:
                 if self.board[row][col] in queen_val:
                     return False
         return True
+
+    def zugzwang_danger(self):  # zugzwang possibility if no major piece on board
+        for row in range(2, 10):
+            for col in range(2, 10):
+                if abs(self.board[row][col]) in (Pieces.WN, Pieces.WB, Pieces.WR, Pieces.WQ):
+                    return False
+        return True
+
