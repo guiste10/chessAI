@@ -32,10 +32,10 @@ def play_turn(board, opponents_uci_move, is_engine_white, time_left_sec, turn):
 
 def search_best_move(board, is_engine_white, opponents_uci_move, time_left_sec, previous_two_evals):
     start, depth_max, best_move, best_eval = time.time(), 1, 'no move', 0
-    # depth_max = maximum_depth = 3
-    # while depth_max <= maximum_depth:
-    maximum_depth = 6 if time_left_sec > 60 else 5
-    while can_increase_time(depth_max, maximum_depth, time_left_sec, start, best_eval):
+    # maximum_depth = 5
+
+    maximum_depth = 6 if time_left_sec > 15 else 4
+    while depth_max <= maximum_depth:
         best_eval, best_move = mtdf_search(board, depth_max, is_engine_white, opponents_uci_move, previous_two_evals)
         previous_two_evals.append(best_eval)
         print("Nodes: " + str(visit_node()) + " table size: " + str(len(transposition_table)))
@@ -50,7 +50,7 @@ def search_best_move(board, is_engine_white, opponents_uci_move, time_left_sec, 
 def can_increase_time(depth_max, maximum_depth, time_left_sec, start, best_eval):
     time_elapsed = time.time() - start
     return depth_max <= maximum_depth or \
-           ((time_left_sec > 60 and time_elapsed < 0.8) or (time_left_sec > 40 and time_elapsed < 0.6) or (time_left_sec > 20 and time_elapsed < 0.4)) \
+           (time_left_sec > 15 and time_elapsed < 0.2) \
            and depth_max < 15 and -20000 < best_eval < 20000
 
 
