@@ -44,7 +44,7 @@ class BoardState:
     # Moves generation from pseudo moves (i.e. moves that may leave the king exposed) #
     ###################################################################################
 
-    def get_all_moves(self, is_white, enemy_uci_move):
+    def get_all_moves(self, is_white, enemy_uci_move, depth):
         pseudo_moves_dict = {"move": [], "move2": [], "capture": [], "recap": [], "en passant": [], "promotion": [], "castle": []}
         self.is_king_attacked = self.is_the_king_attacked(is_white)
         for row in range(2, 10):
@@ -54,9 +54,16 @@ class BoardState:
         if enemy_uci_move is not None:
             enemy_move = uci_move_to_move_simple(enemy_uci_move)
             self.add_en_passant(enemy_move, pseudo_moves_dict, is_white)
-        pseudo_moves_sorted_list = itertools.chain(pseudo_moves_dict["en passant"], pseudo_moves_dict["capture"], pseudo_moves_dict["promotion"], pseudo_moves_dict["castle"],
-                                                   pseudo_moves_dict["move"], pseudo_moves_dict["move2"])
-        return self.filter_invalid_moves(is_white, pseudo_moves_sorted_list)
+        if depth == 1:
+            valid_power_moves = self.filter_invalid_moves(is_white, itertools.chain(pseudo_moves_dict["en passant"], pseudo_moves_dict["promotion"], pseudo_moves_dict["capture"]))
+            if valid_power_moves:
+                return valid_power_moves
+            valid_moves = itertools.chain(pseudo_moves_dict["castle"], pseudo_moves_dict["move"], pseudo_moves_dict["move2"])
+            return self.filter_invalid_moves(is_white, valid_moves)
+        else:
+            pseudo_moves_sorted_list = itertools.chain(pseudo_moves_dict["en passant"], pseudo_moves_dict["promotion"], pseudo_moves_dict["capture"], pseudo_moves_dict["castle"],
+                                                       pseudo_moves_dict["move"], pseudo_moves_dict["move2"])
+            return self.filter_invalid_moves(is_white, pseudo_moves_sorted_list)
 
     def add_piece_moves(self, row, col, moves, is_white):
         piece_int = self.board[row][col]
@@ -285,4 +292,3 @@ class BoardState:
                 if abs(self.board[row][col]) in (Pieces.WN, Pieces.WB, Pieces.WR, Pieces.WQ):
                     return False
         return True
-

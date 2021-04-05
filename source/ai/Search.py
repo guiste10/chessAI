@@ -47,8 +47,11 @@ def search_best_move(board, is_engine_white, opponents_uci_move, time_left_sec, 
         #best_eval, best_move = normal_search(board, depth_max, is_engine_white, opponents_uci_move, zugzwang_danger)
         previous_two_evals.append(best_eval)
         print("Nodes: " + str(visit_node()) + " table size: " + str(len(transposition_table)))
-        print("Depth " + str(depth_max) + " move: " + move_to_uci_move(best_move) + " score: " + str(previous_two_evals[-1]))
+        if best_move:
+            print("Depth " + str(depth_max) + " move: " + move_to_uci_move(best_move) + " score: " + str(previous_two_evals[-1]))
         depth_max += 1
+    from AngryNerd import print_f
+    print_f("info depth " + str(depth_max-1) + " score " + str(best_eval))
     transposition_table.clear()
     if best_move is None:
         best_move = board.get_all_moves(is_engine_white, opponents_uci_move)[0]
@@ -57,9 +60,9 @@ def search_best_move(board, is_engine_white, opponents_uci_move, time_left_sec, 
 
 def can_increase_time(depth_max, maximum_depth, time_left_sec, start, best_eval):
     time_elapsed = time.time() - start
-    return depth_max <= maximum_depth or \
-           (time_left_sec > 15 and time_elapsed < 0.2) \
-           and depth_max < 15 and -30000 < best_eval < 30000
+    return (depth_max <= maximum_depth or
+           (time_left_sec > 30 and time_elapsed < 0.7)) \
+           and depth_max < 20 and -30000 < best_eval < 30000
 
 
 def mtdf_search(board, depth_max, is_engine_white, opponents_uci_move, previous_two_evals, zugzwang_danger):
@@ -97,7 +100,7 @@ def alpha_beta_bounds(board, opponents_uci_move, is_white, gamma, depth, zugzwan
     if depth <= 0 or board.current_eval < -20000 or board.current_eval > 20000:
         g, best_move = board.current_eval, None
     else:
-        moves = board.get_all_moves(is_white, opponents_uci_move)
+        moves = board.get_all_moves(is_white, opponents_uci_move, depth)
         if best_move_calculated is not None:
             moves = itertools.chain([best_move_calculated], moves)
 
