@@ -70,21 +70,6 @@ def debug_position():
     board, previous_uci_move = init_normal_board()
     previous_move = None
     is_white = True
-
-    # moves1 = ['d2d4','g7g6','e2e4','f8g7','g1e2','g8f6','d1d3','b8c6','c2c3','e8g8','c1g5','d7d6','h2h4','h7h6','g5d2','d6d5','f2f3','e7e5','e4d5','f6d5','d2h6','g7h6','d4e5','c6e5','d3e4','f8e8','e4d4','h6e3','d4d1','c8f5','c3c4','e5d3','d1d3','f5d3','c4d5','d8d5','b1c3','d5d6','a1d1','e3b6','a2a4','b6a5','f3f4','d6d5','d1d2','a5c3','b2c3','d5c4','h1h3','d3e2','f1e2','c4a4','h3f3','a4c4','g2g3','a7a6','e1f2','c4c5','f2f1','e8e3','d2c2','e3f3','e2f3','a8d8','f1g2','d8b8','g3g4','c5e3','f4f5','e3d3','c2f2','g6f5','g4f5','d3f5','f2d2','f5f6','d2d4','g8h8','d4c4','b8g8','c4g4','g8g4','f3g4','f6h4','g2f3','h4f6','f3e4','f6c3','g4c8','h8g8','e4d5','c3d3']
-    # moves2 = ['d5e5','d3e3','e5f6','e3h6','f6e5','h6e3','e5d5','e3d3']
-    # moves3 = ['d5e5','d3d2','e5e4','d2e2','e4d5','e2d3']
-    # moves33 = ['d5e5','d3d2','e5e4','d2e2','e4d5','e2d3']
-    # for moves in (moves1, moves2, moves33):
-    #     for uci_move in moves:
-    #         previous_move = uci_move_to_move_object(uci_move, is_white, board)
-    #         if moves == moves33:
-    #             print(previous_move.__class__.__name__)
-    #         previous_move.do_move(board)
-    #         is_white = not is_white
-    #     print(board.current_hash)
-
-    #moves = ['g1f3','d7d6','g2g3','b8d7','f1g2','g8f6','b1c3','e7e5','e1g1','e5e4','f3g5','d6d5','d2d4','d7b6'] # measure speed
     moves = ['g1f3','d7d5','g2g3','g8f6','f1g2','e7e6','e1g1','f8e7','d2d4','e8g8','b1c3','b8c6','c1f4','f6e4','c3b5','e4d6','b5d6','e7d6','f4d6','d8d6','d1d3','e6e5','f3e5','c6e5','d4e5','d6e5','g2d5','e5b2','a1b1','b2e5','b1b5','e5d6','e2e4','d6a6','b5b3','a6d3','b3d3','c7c6','d5b3','c8g4','f2f3','g4h3','f1e1','f8e8','g1f2','a7a5']
     for uci_move in moves:
         previous_move = uci_move_to_move_object(uci_move, is_white, board)
@@ -147,5 +132,5 @@ def print_stats(time_dif, turn):
 
 if __name__ == "__main__":
     #debug_position()
-    #play_on_console()
-    play_uci()
+    play_on_console()
+    #play_uci()

@@ -67,7 +67,6 @@ class KingMove(Move):  # castling rights unchanged (castling was already not pos
 class MoveCastlingRightsChange(Move):  # change castling rights related to a rook or king's capture/move
     def __init__(self, row_1, col_1, row_2, col_2, is_white, to_piece=Pieces.OO):
         super(MoveCastlingRightsChange, self).__init__(row_1, col_1, row_2, col_2, is_white, to_piece)
-        self.is_white = is_white
 
     def do_move(self, board):
         if value_to_piece_short[board.board[self.row_1][self.col_1]] == 'k':
@@ -86,10 +85,10 @@ class MoveCastlingRightsChange(Move):  # change castling rights related to a roo
         super(MoveCastlingRightsChange, self).undo_move(board)
 
     def update_hash(self, board, piece_val):
-        if self.col_1 == king_start_col:
+        if self.col_1 == king_start_col:  # castling not possible on both sides anymore
             board.current_hash ^= Zob.castling_rights_hash[self.is_white][True]
             board.current_hash ^= Zob.castling_rights_hash[self.is_white][False]
-        elif self.col_1 == king_rook_start_col:
+        elif self.col_1 == king_rook_start_col:  # castling kingside not possible anymore
             board.current_hash ^= Zob.castling_rights_hash[self.is_white][True]
         else:
             board.current_hash ^= Zob.castling_rights_hash[self.is_white][False]
