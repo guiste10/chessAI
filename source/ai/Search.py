@@ -77,7 +77,7 @@ def mtdf_search(board, depth_max, is_engine_white, opponents_uci_move, previous_
     return g, transposition_table[board.current_hash][2]
 
 
-def alpha_beta_bounds(board, opponents_uci_move, is_white, gamma, depth, zugzwang_danger, is_root=False):
+def alpha_beta_bounds(board, opponents_uci_move, is_white, beta, depth, zugzwang_danger, is_root=False):
     # transposition_table : {K = hash, V = (depth, score, best_move, type)}
     visit_node()
     if board.current_hash in board.history and board.history[board.current_hash] == THREEFOLD_REPETITION:
@@ -87,13 +87,13 @@ def alpha_beta_bounds(board, opponents_uci_move, is_white, gamma, depth, zugzwan
         if entry[0] >= depth:
             entry = transposition_table[board.current_hash]
             if entry[3] == LOWERBOUND:
-                if entry[1] >= gamma:
+                if entry[1] >= beta:
                     return entry[1]
-                gamma = max(gamma - 1, entry[1]) + 1
+                beta = max(beta - 1, entry[1]) + 1
             if entry[3] == UPPERBOUND:
-                if entry[1] <= gamma - 1:
+                if entry[1] <= beta - 1:
                     return entry[1]
-                gamma = min(gamma, entry[1])
+                beta = min(beta, entry[1])
         best_move_calculated = entry[2]
     else:
         best_move_calculated = None
@@ -108,34 +108,34 @@ def alpha_beta_bounds(board, opponents_uci_move, is_white, gamma, depth, zugzwan
         if depth > 0 and not is_root and not board.is_king_attacked and not zugzwang_danger:  # do null move
             null_move = NullMove(is_white)
             null_move.do_move(board)
-            g = alpha_beta_bounds(board, None, not is_white, gamma, depth - 3, zugzwang_danger)
+            g = alpha_beta_bounds(board, None, not is_white, beta, depth - 3, zugzwang_danger)
             null_move.undo_move(board)
         else:
             g = -max_utility if is_white else max_utility
         #g = -max_utility if is_white else max_utility
         if is_white:
             for move in moves:
-                if g >= gamma:
+                if g >= beta:
                     break
                 move.do_move(board)
-                val = alpha_beta_bounds(board, move_to_uci_move(move), not is_white, gamma, depth - 1, zugzwang_danger)
+                val = alpha_beta_bounds(board, move_to_uci_move(move), not is_white, beta, depth - 1, zugzwang_danger)
                 move.undo_move(board)
                 board.current_hash, board.current_eval = memo_hash, memo_eval
                 if val > g:
                     g, best_move = val, move
         else:
             for move in moves:
-                if g <= gamma - 1:
+                if g <= beta - 1:
                     break
                 move.do_move(board)
-                val = alpha_beta_bounds(board, move_to_uci_move(move), not is_white, gamma, depth - 1, zugzwang_danger)
+                val = alpha_beta_bounds(board, move_to_uci_move(move), not is_white, beta, depth - 1, zugzwang_danger)
                 move.undo_move(board)
                 board.current_hash, board.current_eval = memo_hash, memo_eval
                 if val < g:
                     g, best_move = val, move
     if max_utility == abs(g) and depth > 0 and not board.is_king_attacked:
         g = 0  # not + or - max_utility, it is a pat!
-    if g < gamma:
+    if g < beta:
         transposition_table[board.current_hash] = (depth, g, best_move, UPPERBOUND)
     else:
         transposition_table[board.current_hash] = (depth, g, best_move, LOWERBOUND)
@@ -220,7 +220,6 @@ def alpha_beta(board, opponents_uci_move, is_white, alpha, beta, depth, is_root=
             if alpha >= beta:
                 break
     else:
-        g = max_utility
         for move in moves:
             uci_move = move_to_uci_move(move)
             move.do_move(board)
